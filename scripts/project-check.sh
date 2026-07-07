@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "== EtalonApp project check =="
+echo "== SimonApp project check =="
 echo
 
 echo "-- Proxy-related environment --"

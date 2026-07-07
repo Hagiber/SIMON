@@ -131,7 +131,7 @@ def generateAssetMetadata = tasks.register("generateAssetMetadata") {
 }
 
 android {
-    namespace 'com.hsw.etalonapp'
+    namespace 'com.hsw.simonapp'
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -139,7 +139,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.hsw.etalonapp"
+        applicationId "com.hsw.simonapp"
         minSdk 29
         targetSdk 36
         versionCode 1

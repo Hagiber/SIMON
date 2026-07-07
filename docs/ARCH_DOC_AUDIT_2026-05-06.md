@@ -7,8 +7,8 @@ Last verified: 2026-06-30
 This audit is retained as a short historical checkpoint. The actionable items
 from the original audit have been folded into the active layer documents:
 
-- `app/src/main/java/com/hsw/etalonapp/LAYERS.md`
-- `app/src/main/java/com/hsw/etalonapp/engine/LAYERS.md`
+- `app/src/main/java/com/hsw/simonapp/LAYERS.md`
+- `app/src/main/java/com/hsw/simonapp/engine/LAYERS.md`
 - `VulkanRenderingEngine/src/main/cpp/LAYERS.md`
 
 ## Resolved Cleanup
@@ -37,7 +37,7 @@ from the original audit have been folded into the active layer documents:
 
 - Every tracked Markdown document should contain a `Last verified: YYYY-MM-DD`
   marker and a `## Validation` section.
-- Host Java sources outside `com.hsw.etalonapp.engine` should only import the
-  public `com.hsw.etalonapp.engine.api.*` facade.
+- Host Java sources outside `com.hsw.simonapp.engine` should only import the
+  public `com.hsw.simonapp.engine.api.*` facade.
 - Run `./scripts/project-check.sh` before release checkpoints or after
   Gradle/proxy configuration changes.

@@ -88,9 +88,9 @@ bool VulkanDevice::createInstance(std::string *errorMessage) {
     const auto extensions = nativelib::platform::android::NativeWindowHandle::requiredInstanceExtensions();
 
     VkApplicationInfo appInfo{VK_STRUCTURE_TYPE_APPLICATION_INFO};
-    appInfo.pApplicationName = "Etalon Vulkan Screen";
+    appInfo.pApplicationName = "SIMON Vulkan Screen";
     appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.pEngineName = "Etalon2D";
+    appInfo.pEngineName = "SIMON2D";
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.apiVersion = VK_API_VERSION_1_0;
 
