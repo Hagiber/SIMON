@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">EtalonApp</string>
+    <string name="vulkan_initializing">Vulkan inicializálás...</string>
+    <string name="vulkan_running">Vulkan képernyő aktív</string>
+    <string name="vulkan_failed">Vulkan hiba: %1$s</string>
+    <string name="run_pause_checkbox">Run</string>
+    <string name="save_button_label">SAVE</string>
+    <string name="load_button_label">LOAD</string>
+    <string name="save_success">Save OK</string>
+    <string name="save_failed">Save failed</string>
+    <string name="load_success">Load OK</string>
+    <string name="load_failed">Load failed</string>
+</resources>

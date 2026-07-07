@@ -1,0 +1,65 @@
+pluginManagement {
+    repositories {
+        def repoMirrorUrl =
+                providers.gradleProperty("repoMirrorUrl").orNull ?: System.getenv("GRADLE_REPO_MIRROR_URL")
+        def repoMirrorOnlyRaw =
+                providers.gradleProperty("repoMirrorOnly").orNull ?: System.getenv("GRADLE_REPO_MIRROR_ONLY")
+        def repoMirrorOnly = (repoMirrorOnlyRaw ?: "false").toBoolean()
+
+        if (repoMirrorUrl) {
+            maven {
+                url = uri(repoMirrorUrl)
+                allowInsecureProtocol = repoMirrorUrl.startsWith("http://")
+            }
+        }
+
+        if (!repoMirrorOnly) {
+            google {
+                content {
+                    includeGroupByRegex("com\\.android.*")
+                    includeGroupByRegex("com\\.google.*")
+                    includeGroupByRegex("androidx.*")
+                }
+            }
+            mavenCentral()
+            gradlePluginPortal()
+        }
+    }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        def repoMirrorUrl =
+                providers.gradleProperty("repoMirrorUrl").orNull ?: System.getenv("GRADLE_REPO_MIRROR_URL")
+        def repoMirrorOnlyRaw =
+                providers.gradleProperty("repoMirrorOnly").orNull ?: System.getenv("GRADLE_REPO_MIRROR_ONLY")
+        def repoMirrorOnly = (repoMirrorOnlyRaw ?: "false").toBoolean()
+
+        if (repoMirrorUrl) {
+            maven {
+                url = uri(repoMirrorUrl)
+                allowInsecureProtocol = repoMirrorUrl.startsWith("http://")
+            }
+        }
+
+        if (!repoMirrorOnly) {
+            google {
+                content {
+                    includeGroupByRegex("com\\.android.*")
+                    includeGroupByRegex("androidx.*")
+                    includeGroupByRegex("com\\.google.*")
+                }
+            }
+            mavenCentral {
+                content {
+                }
+            }
+
+        }
+    }
+}
+
+rootProject.name = "EtalonApp"
+include ':app'
+include ':VulkanRenderingEngine'
+include ':smokehost'

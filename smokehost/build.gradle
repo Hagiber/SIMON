@@ -1,0 +1,131 @@
+plugins {
+    alias(libs.plugins.android.application)
+}
+
+def textureSourceDir = layout.projectDirectory.dir("src/main/assets").asFile
+def generatedTextureAtlasAssetsDir = new File(layout.buildDirectory.asFile.get(), "generated/assets/textureAtlases")
+
+def generateTextureAtlases = tasks.register("generateTextureAtlases") {
+    group = "assets"
+    description = "Generates texture atlas PNGs and JSON metadata from sheet PNGs named like name5x5.png."
+
+    inputs.files(fileTree(textureSourceDir) {
+        include "*.png"
+    })
+    outputs.dir(generatedTextureAtlasAssetsDir)
+
+    doLast {
+        def outputRoot = generatedTextureAtlasAssetsDir
+        delete(outputRoot)
+
+        def atlasOutputDir = new File(outputRoot, "atlases")
+        if (!atlasOutputDir.mkdirs() && !atlasOutputDir.directory) {
+            throw new GradleException("Failed to create generated atlas directory: ${atlasOutputDir}")
+        }
+
+        fileTree(textureSourceDir).matching {
+            include "*.png"
+        }.files.sort { it.name }.each { sourcePng ->
+            def matcher = (sourcePng.name =~ /^(.+?)(\d+)x(\d+)\.png$/)
+            if (!matcher.matches()) {
+                return
+            }
+
+            def sourceBaseName = sourcePng.name.substring(0, sourcePng.name.length() - ".png".length())
+            def columns = matcher[0][2] as int
+            def rows = matcher[0][3] as int
+            def image = javax.imageio.ImageIO.read(sourcePng)
+            if (image == null) {
+                throw new GradleException("Failed to decode atlas source PNG: ${sourcePng}")
+            }
+            if (columns <= 0 || rows <= 0 ||
+                    image.width % columns != 0 ||
+                    image.height % rows != 0) {
+                throw new GradleException(
+                        "Atlas source dimensions must divide evenly by ${columns}x${rows}: ${sourcePng}")
+            }
+
+            def atlasFileName = "${sourceBaseName}.atlas.png"
+            def atlasMetadataName = "${sourceBaseName}.atlas.json"
+            def atlasPng = new File(atlasOutputDir, atlasFileName)
+            java.nio.file.Files.copy(sourcePng.toPath(),
+                    atlasPng.toPath(),
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+
+            def frameWidth = (image.width / columns) as int
+            def frameHeight = (image.height / rows) as int
+            def frames = []
+            (0..<rows).each { row ->
+                (0..<columns).each { column ->
+                    def index = row * columns + column
+                    def x = column * frameWidth
+                    def y = row * frameHeight
+                    frames << [
+                            name    : "${sourceBaseName}_${String.format('%02d', index)}",
+                            index   : index,
+                            x       : x,
+                            y       : y,
+                            width   : frameWidth,
+                            height  : frameHeight,
+                            u       : x / (double) image.width,
+                            v       : y / (double) image.height,
+                            widthUv : frameWidth / (double) image.width,
+                            heightUv: frameHeight / (double) image.height
+                    ]
+                }
+            }
+
+            def metadata = [
+                    version    : 1,
+                    source     : sourcePng.name,
+                    image      : "atlases/${atlasFileName}",
+                    width      : image.width,
+                    height     : image.height,
+                    columns    : columns,
+                    rows       : rows,
+                    frameWidth : frameWidth,
+                    frameHeight: frameHeight,
+                    frames     : frames
+            ]
+            def metadataJson = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(metadata))
+            new File(atlasOutputDir, atlasMetadataName).text = metadataJson + System.lineSeparator()
+        }
+    }
+}
+
+android {
+    namespace 'com.hsw.vulkansmokehost'
+    compileSdk {
+        version = release(36) {
+            minorApiLevel = 1
+        }
+    }
+
+    defaultConfig {
+        applicationId "com.hsw.vulkansmokehost"
+        minSdk 29
+        targetSdk 36
+        versionCode 1
+        versionName "1.0"
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    sourceSets {
+        main {
+            assets.srcDir(generatedTextureAtlasAssetsDir)
+        }
+    }
+}
+
+tasks.named("preBuild").configure {
+    dependsOn(generateTextureAtlases)
+}
+
+dependencies {
+    implementation project(':VulkanRenderingEngine')
+    testImplementation libs.junit
+}

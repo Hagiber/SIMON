@@ -1,0 +1,50 @@
+plugins {
+    alias(libs.plugins.android.library)
+}
+
+android {
+    namespace 'com.hsw.vulkanrenderingengine'
+    compileSdk {
+        version = release(36) {
+            minorApiLevel = 1
+        }
+    }
+
+    defaultConfig {
+        minSdk 29
+
+        consumerProguardFiles "consumer-rules.pro"
+        externalNativeBuild {
+            cmake {
+                arguments "-DANDROID_STL=c++_shared"
+                cppFlags ""
+            }
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path "src/main/cpp/CMakeLists.txt"
+            version "3.22.1"
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    sourceSets {
+        main {
+            assets.srcDirs += ['src/main/shaders']
+        }
+    }
+    buildFeatures {
+        prefab true
+    }
+    ndkVersion '28.2.13676358'
+}
+
+dependencies {
+    implementation libs.games.frame.pacing
+    testImplementation libs.junit
+}
