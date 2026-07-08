@@ -62,4 +62,3 @@ dependencyResolutionManagement {
 rootProject.name = "SimonApp"
 include ':app'
 include ':VulkanRenderingEngine'
-include ':smokehost'

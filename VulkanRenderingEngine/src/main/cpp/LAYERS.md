@@ -64,8 +64,6 @@ The reusable VulkanRenderEngine lives in `core/`, `render/`, `platform/android/`
 and the AAR-owned Java bridge package `com.hsw.vulkanrenderingengine.bridge`.
 The `jni/` directory keeps JNI entry points thin and delegates to the native
 facade contract.
-Sample hosts, including `:smokehost`, must consume that AAR bridge instead of
-adding host-package-specific JNI entry points to this native library.
 
 The first-class native facade contract is `render/vulkan_render_engine.h`:
 `init`, `resize`, `uploadTexture`, `submitSceneFrame`, `renderFrame`, and

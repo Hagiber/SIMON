@@ -43,7 +43,6 @@
         android:textColor="#FFFFFF" />
 
     <LinearLayout
-        android:id="@+id/save_load_controls"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"

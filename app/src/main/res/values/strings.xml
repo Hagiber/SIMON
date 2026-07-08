@@ -1,7 +1,6 @@
 <resources>
     <string name="app_name">SimonApp</string>
     <string name="vulkan_initializing">Vulkan inicializálás...</string>
-    <string name="vulkan_running">Vulkan képernyő aktív</string>
     <string name="vulkan_failed">Vulkan hiba: %1$s</string>
     <string name="run_pause_checkbox">Run</string>
     <string name="save_button_label">SAVE</string>
