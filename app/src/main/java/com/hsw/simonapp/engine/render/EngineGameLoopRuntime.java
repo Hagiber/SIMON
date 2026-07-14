@@ -2,6 +2,7 @@ package com.hsw.simonapp.engine.render;
 
 import android.content.res.AssetManager;
 
+import com.hsw.simonapp.engine.api.OrthoCamera;
 import com.hsw.simonapp.engine.api.TouchInputEvent;
 import com.hsw.simonapp.engine.audio.AssetBackedBounceAudioPlayer;
 import com.hsw.simonapp.engine.audio.AudioEventQueue;
@@ -28,6 +29,8 @@ final class EngineGameLoopRuntime {
 
     private final InputEventQueue inputEventQueue;
     private final GameLoop gameLoop;
+    private final FrameRenderer frameRenderer;
+    private final SceneDefinition sceneDefinition;
     private final GameRuntimeFactory.ViewportAdapter viewportAdapter;
     private final GameRuntimeFactory.InteractionAdapter interactionAdapter;
     private final GameRuntimeFactory.StatePersistence statePersistence;
@@ -58,6 +61,8 @@ final class EngineGameLoopRuntime {
                 sceneDefinition,
                 inputEventQueue);
         this.gameLoop = runtime.getGameLoop();
+        this.frameRenderer = Objects.requireNonNull(frameRenderer, "frameRenderer");
+        this.sceneDefinition = sceneDefinition;
         this.viewportAdapter = runtime.getViewportAdapter();
         this.interactionAdapter = runtime.getInteractionAdapter();
         this.statePersistence = runtime.getStatePersistence();
@@ -76,6 +81,8 @@ final class EngineGameLoopRuntime {
 
         InputEventQueue inputEventQueue = new InputEventQueue();
         this.inputEventQueue = inputEventQueue;
+        this.frameRenderer = nonNullFrameRenderer;
+        this.sceneDefinition = nonNullSceneDefinition;
         GameRuntimeFactory.GameRuntime runtime = createRuntime(nonNullAssetManager,
                 nonNullFrameRenderer,
                 nonNullFrameTimingSink,
@@ -108,8 +115,16 @@ final class EngineGameLoopRuntime {
         gameLoop.runFrame(frameContext);
     }
 
-    void resizeViewport(int width, int height) {
-        viewportAdapter.resizeViewport(width, height);
+    synchronized void resizeViewport(int width, int height) {
+        if (width <= 0 || height <= 0) {
+            viewportAdapter.resizeViewport(width, height);
+            return;
+        }
+        OrthoCamera camera = sceneDefinition.cameraForViewport(width, height);
+        if (frameRenderer instanceof ViewportAwareFrameRenderer) {
+            ((ViewportAwareFrameRenderer) frameRenderer).setCamera(camera);
+        }
+        viewportAdapter.resizeViewport(width, height, camera);
     }
 
     synchronized boolean saveWorld(File saveFile) {

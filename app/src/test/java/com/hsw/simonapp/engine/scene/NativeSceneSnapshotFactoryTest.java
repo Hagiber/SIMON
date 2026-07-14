@@ -1,7 +1,9 @@
 package com.hsw.simonapp.engine.scene;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
+import com.hsw.simonapp.engine.api.OrthoCamera;
 import com.hsw.simonapp.engine.loop.core.RenderFrameState;
 import com.hsw.simonapp.engine.loop.core.WorldState;
 import com.hsw.simonapp.engine.loop.defaults.SimpleWorldState;
@@ -102,6 +104,31 @@ public class NativeSceneSnapshotFactoryTest {
         assertArrayEquals(new float[]{-0.25f}, floatArray(currentSnapshot, "ys"), 0.0001f);
     }
 
+    @Test
+    public void create_usesConfiguredCamera() throws Exception {
+        SimpleWorldState worldState = new SimpleWorldState(Arrays.asList(
+                new SimpleWorldState.EntityState(1,
+                        0,
+                        SimpleWorldState.EntityState.ControlMode.AI,
+                        0,
+                        0f,
+                        0f,
+                        1f,
+                        0f,
+                        0f,
+                        0f,
+                        0f,
+                        0.14f)
+        ));
+        NativeSceneSnapshotFactory snapshotFactory = new NativeSceneSnapshotFactory();
+        snapshotFactory.setCamera(OrthoCamera.of(0.0f, 0.0f, 1.25f, 0.0f));
+
+        SceneFrame sceneFrame = snapshotFactory.create(renderFrameState(worldState, worldState, 0.0f));
+        OrthoCamera currentCamera = camera(sceneFrame, "currentCamera");
+
+        assertEquals(1.25f, currentCamera.getZoom(), 0.0001f);
+    }
+
     private static RenderFrameState renderFrameState(WorldState previousWorldState,
                                                      WorldState currentWorldState,
                                                      float interpolationAlpha) throws Exception {
@@ -123,5 +150,11 @@ public class NativeSceneSnapshotFactoryTest {
         Field field = SceneSnapshot.class.getDeclaredField(fieldName);
         field.setAccessible(true);
         return (float[]) field.get(sceneSnapshot);
+    }
+
+    private static OrthoCamera camera(SceneFrame sceneFrame, String fieldName) throws Exception {
+        Field field = SceneFrame.class.getDeclaredField(fieldName);
+        field.setAccessible(true);
+        return (OrthoCamera) field.get(sceneFrame);
     }
 }

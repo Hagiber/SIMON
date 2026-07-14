@@ -1,5 +1,6 @@
 package com.hsw.simonapp.engine.game;
 
+import com.hsw.simonapp.engine.api.OrthoCamera;
 import com.hsw.simonapp.engine.input.QueuedInputReader;
 import com.hsw.simonapp.engine.loop.core.CollisionDetector;
 import com.hsw.simonapp.engine.loop.core.CollisionResolver;
@@ -30,13 +31,14 @@ public final class DefaultGameRuntimeFactory implements GameRuntimeFactory {
         SimpleWorldUpdater simpleWorldUpdater = new SimpleWorldUpdater(interactionController);
 
         InputReader inputReader = new QueuedInputReader(nonNullContext.getInputEventQueue());
+        SceneDefinition sceneDefinition = nonNullContext.getSceneDefinition();
         WorldUpdater worldUpdater = new DeterministicWorldUpdater(simpleWorldUpdater,
                 simpleWorldUpdater,
                 simpleWorldUpdater);
         CollisionDetector collisionDetector = new SimpleCollisionDetector();
         CollisionResolver collisionResolver = new SimpleCollisionResolver();
 
-        GameLoop gameLoop = new GameLoop(nonNullContext.getSceneDefinition().createInitialWorldState(),
+        GameLoop gameLoop = new GameLoop(sceneDefinition.createInitialWorldState(),
                 inputReader,
                 worldUpdater,
                 collisionDetector,
@@ -47,9 +49,45 @@ public final class DefaultGameRuntimeFactory implements GameRuntimeFactory {
                 nonNullContext.getFrameTimingSink());
 
         return new GameRuntime(gameLoop,
-                simpleWorldUpdater::resizeViewport,
+                new DefaultViewportAdapter(simpleWorldUpdater, gameLoop, sceneDefinition),
                 new DefaultInteractionAdapter(interactionController),
                 new SimpleWorldStatePersistence());
+    }
+
+    private static final class DefaultViewportAdapter implements ViewportAdapter {
+        private final SimpleWorldUpdater simpleWorldUpdater;
+        private final GameLoop gameLoop;
+        private final SceneDefinition sceneDefinition;
+
+        private DefaultViewportAdapter(SimpleWorldUpdater simpleWorldUpdater,
+                                       GameLoop gameLoop,
+                                       SceneDefinition sceneDefinition) {
+            this.simpleWorldUpdater = Objects.requireNonNull(simpleWorldUpdater, "simpleWorldUpdater");
+            this.gameLoop = Objects.requireNonNull(gameLoop, "gameLoop");
+            this.sceneDefinition = Objects.requireNonNull(sceneDefinition, "sceneDefinition");
+        }
+
+        @Override
+        public void resizeViewport(int width, int height) {
+            if (width <= 0 || height <= 0) {
+                simpleWorldUpdater.resizeViewport(width, height);
+                return;
+            }
+            resizeViewport(width, height, sceneDefinition.cameraForViewport(width, height));
+        }
+
+        @Override
+        public void resizeViewport(int width, int height, OrthoCamera camera) {
+            simpleWorldUpdater.resizeViewport(width, height, camera);
+            WorldState currentWorldState = gameLoop.getCurrentWorldState();
+            WorldState layoutWorldState = sceneDefinition.layoutWorldState(currentWorldState,
+                    width,
+                    height,
+                    camera);
+            if (layoutWorldState != currentWorldState) {
+                gameLoop.replaceWorldState(layoutWorldState);
+            }
+        }
     }
 
     private static final class DefaultInteractionAdapter implements InteractionAdapter {

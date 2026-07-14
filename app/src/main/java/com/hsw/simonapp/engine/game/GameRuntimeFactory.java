@@ -1,5 +1,6 @@
 package com.hsw.simonapp.engine.game;
 
+import com.hsw.simonapp.engine.api.OrthoCamera;
 import com.hsw.simonapp.engine.audio.AudioEventQueue;
 import com.hsw.simonapp.engine.audio.AudioSubsystem;
 import com.hsw.simonapp.engine.input.InputEventQueue;
@@ -109,6 +110,10 @@ public interface GameRuntimeFactory {
 
     interface ViewportAdapter {
         void resizeViewport(int width, int height);
+
+        default void resizeViewport(int width, int height, OrthoCamera camera) {
+            resizeViewport(width, height);
+        }
 
         static ViewportAdapter ignoring() {
             return (width, height) -> {

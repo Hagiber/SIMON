@@ -6,6 +6,7 @@ final class WorldBounds {
 
     private volatile float horizontalBound = BOUNDS;
     private volatile float verticalBound = BOUNDS;
+    private volatile float cameraZoom = 1.0f;
 
     private WorldBounds() {
     }
@@ -15,17 +16,25 @@ final class WorldBounds {
     }
 
     void setViewportSize(int width, int height) {
+        setViewportSize(width, height, cameraZoom);
+    }
+
+    void setViewportSize(int width, int height, float cameraZoom) {
         if (width <= 0 || height <= 0) {
             return;
         }
+        if (!Float.isFinite(cameraZoom) || cameraZoom <= 0.0f) {
+            return;
+        }
 
+        this.cameraZoom = cameraZoom;
         float aspect = (float) width / (float) height;
         if (aspect >= 1.0f) {
-            horizontalBound = BOUNDS * aspect;
-            verticalBound = BOUNDS;
+            horizontalBound = BOUNDS * aspect / cameraZoom;
+            verticalBound = BOUNDS / cameraZoom;
         } else {
-            horizontalBound = BOUNDS;
-            verticalBound = BOUNDS / aspect;
+            horizontalBound = BOUNDS / cameraZoom;
+            verticalBound = BOUNDS / aspect / cameraZoom;
         }
     }
 

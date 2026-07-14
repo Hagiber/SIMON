@@ -5,6 +5,7 @@ import com.hsw.simonapp.engine.loop.core.RenderFrameState;
 import com.hsw.simonapp.engine.loop.core.WorldState;
 import com.hsw.simonapp.engine.loop.defaults.SimpleWorldState;
 import com.hsw.simonapp.engine.api.BlendMode;
+import com.hsw.simonapp.engine.api.OrthoCamera;
 import com.hsw.simonapp.engine.api.ScissorRect;
 import com.hsw.simonapp.engine.api.SceneFrame;
 import com.hsw.simonapp.engine.api.SceneSnapshot;
@@ -18,6 +19,12 @@ public final class NativeSceneSnapshotFactory {
     private static final int FIRE_ATLAS_ROWS = 5;
     private static final int FIRE_ATLAS_FRAME_COUNT = FIRE_ATLAS_COLUMNS * FIRE_ATLAS_ROWS;
 
+    private volatile OrthoCamera camera = OrthoCamera.defaults();
+
+    public void setCamera(OrthoCamera camera) {
+        this.camera = java.util.Objects.requireNonNull(camera, "camera");
+    }
+
     public SceneFrame create(RenderFrameState renderFrameState) {
         SceneSnapshot previousSceneSnapshot = createSnapshot(renderFrameState.getPreviousWorldState());
         SceneSnapshot currentSceneSnapshot = createSnapshot(renderFrameState.getCurrentWorldState());
@@ -26,6 +33,8 @@ public final class NativeSceneSnapshotFactory {
         }
         return SceneFrame.of(previousSceneSnapshot,
                 currentSceneSnapshot,
+                camera,
+                camera,
                 renderFrameState.getInterpolationAlpha());
     }
 

@@ -1,5 +1,6 @@
 package com.hsw.simonapp.engine.loop.defaults;
 
+import com.hsw.simonapp.engine.api.OrthoCamera;
 import com.hsw.simonapp.engine.loop.core.FrameContext;
 import com.hsw.simonapp.engine.loop.core.GameplayDecider;
 import com.hsw.simonapp.engine.loop.core.InputApplier;
@@ -8,6 +9,8 @@ import com.hsw.simonapp.engine.loop.core.PhysicsIntegrator;
 import com.hsw.simonapp.engine.loop.core.WorldState;
 import com.hsw.simonapp.engine.api.TouchInputEvent;
 import com.hsw.simonapp.engine.input.TouchInputSnapshot;
+
+import java.util.Objects;
 
 public final class SimpleWorldUpdater implements InputApplier, GameplayDecider, PhysicsIntegrator {
 
@@ -62,6 +65,12 @@ public final class SimpleWorldUpdater implements InputApplier, GameplayDecider, 
 
     public void resizeViewport(int width, int height) {
         worldBounds.setViewportSize(width, height);
+    }
+
+    public void resizeViewport(int width, int height, OrthoCamera camera) {
+        worldBounds.setViewportSize(width,
+                height,
+                Objects.requireNonNull(camera, "camera").getZoom());
     }
 
     @Override

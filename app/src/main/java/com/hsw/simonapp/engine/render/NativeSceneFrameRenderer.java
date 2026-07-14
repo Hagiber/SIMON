@@ -1,6 +1,7 @@
 package com.hsw.simonapp.engine.render;
 
 import com.hsw.simonapp.engine.scene.NativeSceneSnapshotFactory;
+import com.hsw.simonapp.engine.api.OrthoCamera;
 import com.hsw.simonapp.engine.loop.core.FrameContext;
 import com.hsw.simonapp.engine.loop.core.FrameRenderer;
 import com.hsw.simonapp.engine.loop.core.FrameTimingAccumulator;
@@ -11,7 +12,7 @@ import com.hsw.simonapp.engine.api.SceneFrame;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 
-final class NativeSceneFrameRenderer implements FrameRenderer {
+final class NativeSceneFrameRenderer implements FrameRenderer, ViewportAwareFrameRenderer {
 
     private final NativeLib nativeLib;
     private final NativeSceneSnapshotFactory sceneSnapshotFactory;
@@ -23,6 +24,11 @@ final class NativeSceneFrameRenderer implements FrameRenderer {
         this.nativeLib = Objects.requireNonNull(nativeLib, "nativeLib");
         this.sceneSnapshotFactory = Objects.requireNonNull(sceneSnapshotFactory, "sceneSnapshotFactory");
         this.failureSink = Objects.requireNonNull(failureSink, "failureSink");
+    }
+
+    @Override
+    public void setCamera(OrthoCamera camera) {
+        sceneSnapshotFactory.setCamera(camera);
     }
 
     @Override
