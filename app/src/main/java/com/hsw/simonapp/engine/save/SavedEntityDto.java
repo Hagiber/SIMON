@@ -7,6 +7,7 @@ final class SavedEntityDto {
     final int entityId;
     final int ownerId;
     final String controlMode;
+    final String touchInteraction;
     final int textureSlot;
     final String blendMode;
     final int layer;
@@ -29,6 +30,7 @@ final class SavedEntityDto {
     SavedEntityDto(int entityId,
                    int ownerId,
                    String controlMode,
+                   String touchInteraction,
                    int textureSlot,
                    String blendMode,
                    int layer,
@@ -50,6 +52,7 @@ final class SavedEntityDto {
         this.entityId = entityId;
         this.ownerId = ownerId;
         this.controlMode = Objects.requireNonNull(controlMode, "controlMode");
+        this.touchInteraction = Objects.requireNonNull(touchInteraction, "touchInteraction");
         this.textureSlot = textureSlot;
         this.blendMode = Objects.requireNonNull(blendMode, "blendMode");
         this.layer = layer;

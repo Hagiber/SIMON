@@ -22,6 +22,7 @@ final class SimpleWorldStateSaveMapper {
             entities.add(new SavedEntityDto(entity.getEntityId(),
                     entity.getOwnerId(),
                     entity.getControlMode().name(),
+                    entity.getTouchInteraction().name(),
                     entity.getTextureSlot(),
                     entity.getBlendMode().name(),
                     entity.getLayer(),
@@ -98,6 +99,7 @@ final class SimpleWorldStateSaveMapper {
                 scissor,
                 textureRegion,
                 savedEntity.scaleX,
-                savedEntity.scaleY);
+                savedEntity.scaleY,
+                SimpleWorldState.EntityState.TouchInteraction.valueOf(savedEntity.touchInteraction));
     }
 }

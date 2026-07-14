@@ -37,7 +37,8 @@ public class SimpleWorldStateSaveMapperTest {
                 ScissorRect.of(1, 2, 3, 4),
                 new TextureRegion(0.1f, 0.2f, 0.3f, 0.4f),
                 0.6f,
-                1.4f);
+                1.4f,
+                SimpleWorldState.EntityState.TouchInteraction.SELECT);
         SimpleWorldState originalWorld = new SimpleWorldState(Collections.singletonList(originalEntity));
 
         SimpleWorldStateSaveMapper mapper = new SimpleWorldStateSaveMapper();
@@ -52,6 +53,7 @@ public class SimpleWorldStateSaveMapperTest {
         assertEquals(expected.getEntityId(), actual.getEntityId());
         assertEquals(expected.getOwnerId(), actual.getOwnerId());
         assertEquals(expected.getControlMode(), actual.getControlMode());
+        assertEquals(expected.getTouchInteraction(), actual.getTouchInteraction());
         assertEquals(expected.getTextureSlot(), actual.getTextureSlot());
         assertEquals(expected.getBlendMode(), actual.getBlendMode());
         assertEquals(expected.getLayer(), actual.getLayer());

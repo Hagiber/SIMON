@@ -25,6 +25,7 @@ final class GameplaySystem {
                                       Float activeTouchTargetX,
                                       Float activeTouchTargetY) {
         if (entity.getControlMode() != SimpleWorldState.EntityState.ControlMode.HUMAN_TOUCH
+                || entity.getTouchInteraction() != SimpleWorldState.EntityState.TouchInteraction.MOVE_TO_TOUCH
                 || activeTouchTargetX == null
                 || activeTouchTargetY == null) {
             return;

@@ -48,9 +48,16 @@ public final class SimpleWorldState implements WorldState {
             AI
         }
 
+        public enum TouchInteraction {
+            NONE,
+            SELECT,
+            MOVE_TO_TOUCH
+        }
+
         private final int entityId;
         private final int ownerId;
         private final ControlMode controlMode;
+        private final TouchInteraction touchInteraction;
         private final int textureSlot;
         private final BlendMode blendMode;
         private final int layer;
@@ -298,9 +305,56 @@ public final class SimpleWorldState implements WorldState {
                            TextureRegion textureRegion,
                            float scaleX,
                            float scaleY) {
+            this(entityId,
+                    ownerId,
+                    controlMode,
+                    textureSlot,
+                    x,
+                    y,
+                    z,
+                    rotationDeg,
+                    animationState,
+                    velocityX,
+                    velocityY,
+                    angularVelocityDeg,
+                    animationSpeed,
+                    collisionRadius,
+                    blendMode,
+                    layer,
+                    renderOrder,
+                    scissorRect,
+                    textureRegion,
+                    scaleX,
+                    scaleY,
+                    defaultTouchInteraction(controlMode));
+        }
+
+        public EntityState(int entityId,
+                           int ownerId,
+                           ControlMode controlMode,
+                           int textureSlot,
+                           float x,
+                           float y,
+                           float z,
+                           float rotationDeg,
+                           float animationState,
+                           float velocityX,
+                           float velocityY,
+                           float angularVelocityDeg,
+                           float animationSpeed,
+                           float collisionRadius,
+                           BlendMode blendMode,
+                           int layer,
+                           int renderOrder,
+                           ScissorRect scissorRect,
+                           TextureRegion textureRegion,
+                           float scaleX,
+                           float scaleY,
+                           TouchInteraction touchInteraction) {
             this.entityId = entityId;
             this.ownerId = ownerId;
-            this.controlMode = controlMode;
+            this.controlMode = Objects.requireNonNull(controlMode, "controlMode");
+            this.touchInteraction = Objects.requireNonNull(touchInteraction, "touchInteraction");
             this.textureSlot = textureSlot;
             this.blendMode = Objects.requireNonNull(blendMode, "blendMode");
             this.layer = layer;
@@ -321,6 +375,12 @@ public final class SimpleWorldState implements WorldState {
             this.collisionRadius = collisionRadius;
         }
 
+        public static TouchInteraction defaultTouchInteraction(ControlMode controlMode) {
+            return Objects.requireNonNull(controlMode, "controlMode") == ControlMode.HUMAN_TOUCH
+                    ? TouchInteraction.MOVE_TO_TOUCH
+                    : TouchInteraction.SELECT;
+        }
+
         public int getEntityId() {
             return entityId;
         }
@@ -331,6 +391,10 @@ public final class SimpleWorldState implements WorldState {
 
         public ControlMode getControlMode() {
             return controlMode;
+        }
+
+        public TouchInteraction getTouchInteraction() {
+            return touchInteraction;
         }
 
         public int getTextureSlot() {
@@ -458,7 +522,8 @@ public final class SimpleWorldState implements WorldState {
                     scissorRect,
                     textureRegion,
                     scaleX,
-                    scaleY);
+                    scaleY,
+                    touchInteraction);
         }
     }
 }

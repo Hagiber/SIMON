@@ -44,6 +44,7 @@ final class JsonGameSaveCodec {
         json.put("entityId", entity.entityId);
         json.put("ownerId", entity.ownerId);
         json.put("controlMode", entity.controlMode);
+        json.put("touchInteraction", entity.touchInteraction);
         json.put("textureSlot", entity.textureSlot);
         json.put("blendMode", entity.blendMode);
         json.put("layer", entity.layer);
@@ -66,9 +67,11 @@ final class JsonGameSaveCodec {
     }
 
     private static SavedEntityDto entityFromJson(JSONObject json) throws JSONException {
+        String controlMode = json.getString("controlMode");
         return new SavedEntityDto(json.getInt("entityId"),
                 json.getInt("ownerId"),
-                json.getString("controlMode"),
+                controlMode,
+                json.optString("touchInteraction", defaultTouchInteraction(controlMode)),
                 json.getInt("textureSlot"),
                 json.getString("blendMode"),
                 json.getInt("layer"),
@@ -87,6 +90,10 @@ final class JsonGameSaveCodec {
                 (float) json.getDouble("angularVelocityDeg"),
                 (float) json.getDouble("animationSpeed"),
                 (float) json.getDouble("collisionRadius"));
+    }
+
+    private static String defaultTouchInteraction(String controlMode) {
+        return "HUMAN_TOUCH".equals(controlMode) ? "MOVE_TO_TOUCH" : "SELECT";
     }
 
     private static JSONObject scissorToJson(SavedScissorDto scissor) throws JSONException {

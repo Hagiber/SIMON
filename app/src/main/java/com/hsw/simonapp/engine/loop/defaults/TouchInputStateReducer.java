@@ -29,12 +29,6 @@ final class TouchInputStateReducer {
         for (TouchInputEvent event : touchInputSnapshot.getEvents()) {
             switch (event.getAction()) {
                 case DOWN:
-                    if (activeTouchPointerId == null) {
-                        activeTouchPointerId = event.getPointerId();
-                    }
-                    if (activeTouchPointerId == event.getPointerId()) {
-                        updateTouchTarget(event);
-                    }
                     break;
                 case MOVE:
                     if (activeTouchPointerId != null && activeTouchPointerId == event.getPointerId()) {
@@ -44,15 +38,24 @@ final class TouchInputStateReducer {
                 case UP:
                 case CANCEL:
                     if (activeTouchPointerId != null && activeTouchPointerId == event.getPointerId()) {
-                        activeTouchPointerId = null;
-                        activeTouchTargetX = null;
-                        activeTouchTargetY = null;
+                        clearTouchTarget();
                     }
                     break;
                 default:
                     break;
             }
         }
+    }
+
+    void startTouchTarget(TouchInputEvent event) {
+        activeTouchPointerId = event.getPointerId();
+        updateTouchTarget(event);
+    }
+
+    void clearTouchTarget() {
+        activeTouchPointerId = null;
+        activeTouchTargetX = null;
+        activeTouchTargetY = null;
     }
 
     Float getActiveTouchTargetX() {
@@ -64,12 +67,12 @@ final class TouchInputStateReducer {
     }
 
     private void updateTouchTarget(TouchInputEvent event) {
-        worldBounds.setViewportSize(event.getSurfaceWidth(), event.getSurfaceHeight());
         activeTouchTargetX = toWorldX(event);
         activeTouchTargetY = toWorldY(event);
     }
 
     float toWorldX(TouchInputEvent event) {
+        updateViewportSize(event);
         if (event.getSurfaceWidth() <= 0) {
             return 0.0f;
         }
@@ -77,9 +80,14 @@ final class TouchInputStateReducer {
     }
 
     float toWorldY(TouchInputEvent event) {
+        updateViewportSize(event);
         if (event.getSurfaceHeight() <= 0) {
             return 0.0f;
         }
         return worldBounds.toWorldY(1.0f - event.getYPixels() / event.getSurfaceHeight() * 2.0f);
+    }
+
+    private void updateViewportSize(TouchInputEvent event) {
+        worldBounds.setViewportSize(event.getSurfaceWidth(), event.getSurfaceHeight());
     }
 }

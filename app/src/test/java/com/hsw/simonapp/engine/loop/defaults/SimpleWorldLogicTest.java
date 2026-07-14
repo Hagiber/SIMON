@@ -4,6 +4,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import com.hsw.simonapp.engine.api.BlendMode;
+import com.hsw.simonapp.engine.api.ScissorRect;
+import com.hsw.simonapp.engine.api.TextureRegion;
 import com.hsw.simonapp.engine.api.TouchInputEvent;
 import com.hsw.simonapp.engine.input.TouchInputSnapshot;
 import com.hsw.simonapp.engine.loop.core.CollisionPair;
@@ -137,7 +140,7 @@ public class SimpleWorldLogicTest {
         ));
         TouchInputEvent touchDown = new TouchInputEvent(TouchInputEvent.Action.DOWN,
                 9,
-                75.0f,
+                65.0f,
                 50.0f,
                 100,
                 100,
@@ -152,6 +155,50 @@ public class SimpleWorldLogicTest {
         assertEquals(0.0f, entity.getVelocityY(), 0.0001f);
         assertEquals(0.27f, entity.getX(), 0.0001f);
         assertEquals(0.0f, worldState.getEntities().get(0).getVelocityX(), 0.0001f);
+    }
+
+    @Test
+    public void update_doesNotMoveHumanEntityWithNoTouchInteraction() {
+        SimpleWorldState worldState = new SimpleWorldState(Arrays.asList(
+                new SimpleWorldState.EntityState(1,
+                        0,
+                        SimpleWorldState.EntityState.ControlMode.HUMAN_TOUCH,
+                        0,
+                        0f,
+                        0f,
+                        1f,
+                        0f,
+                        0f,
+                        0f,
+                        0f,
+                        0f,
+                        0f,
+                        0.1f,
+                        BlendMode.ALPHA,
+                        0,
+                        0,
+                        ScissorRect.disabled(),
+                        TextureRegion.full(),
+                        1.0f,
+                        1.0f,
+                        SimpleWorldState.EntityState.TouchInteraction.NONE)
+        ));
+        TouchInputEvent touchDown = new TouchInputEvent(TouchInputEvent.Action.DOWN,
+                9,
+                65.0f,
+                50.0f,
+                100,
+                100,
+                1L);
+
+        SimpleWorldState updatedWorldState = updateSimpleWorld(worldState,
+                new FrameContext(1, 0.1f),
+                new TouchInputSnapshot(Collections.singletonList(touchDown)));
+
+        SimpleWorldState.EntityState entity = updatedWorldState.getEntities().get(0);
+        assertEquals(0.0f, entity.getVelocityX(), 0.0001f);
+        assertEquals(0.0f, entity.getVelocityY(), 0.0001f);
+        assertEquals(0.0f, entity.getX(), 0.0001f);
     }
 
     @Test
@@ -201,6 +248,60 @@ public class SimpleWorldLogicTest {
 
         assertEquals(4, selectedEntityId[0]);
         assertEquals(Integer.valueOf(4), interactionController.getSelectedEntityId());
+    }
+
+    @Test
+    public void update_ignoresEntityWithNoTouchInteractionWhenSelecting() {
+        WorldInteractionController interactionController = new WorldInteractionController();
+        int[] selectedEntityId = new int[]{-1};
+        float[] touchedCoordinates = new float[]{Float.NaN, Float.NaN};
+        interactionController.setSelectedEntityListener(entityId -> selectedEntityId[0] = entityId);
+        interactionController.setWorldCoordinateTouchListener((x, y) -> {
+            touchedCoordinates[0] = x;
+            touchedCoordinates[1] = y;
+        });
+        SimpleWorldUpdater simpleWorldUpdater = new SimpleWorldUpdater(interactionController);
+        SimpleWorldState worldState = new SimpleWorldState(Arrays.asList(
+                new SimpleWorldState.EntityState(4,
+                        0,
+                        SimpleWorldState.EntityState.ControlMode.AI,
+                        0,
+                        0.28f,
+                        0.0f,
+                        1f,
+                        0f,
+                        0f,
+                        0f,
+                        0f,
+                        0f,
+                        0f,
+                        0.2f,
+                        BlendMode.ALPHA,
+                        0,
+                        0,
+                        ScissorRect.disabled(),
+                        TextureRegion.full(),
+                        1.0f,
+                        1.0f,
+                        SimpleWorldState.EntityState.TouchInteraction.NONE)
+        ));
+        TouchInputEvent touchDown = new TouchInputEvent(TouchInputEvent.Action.DOWN,
+                9,
+                65.0f,
+                50.0f,
+                100,
+                100,
+                1L);
+
+        updateSimpleWorld(simpleWorldUpdater,
+                worldState,
+                new FrameContext(1, 0.0f),
+                new TouchInputSnapshot(Collections.singletonList(touchDown)));
+
+        assertEquals(-1, selectedEntityId[0]);
+        assertNull(interactionController.getSelectedEntityId());
+        assertEquals(0.285f, touchedCoordinates[0], 0.0001f);
+        assertEquals(0.0f, touchedCoordinates[1], 0.0001f);
     }
 
     @Test

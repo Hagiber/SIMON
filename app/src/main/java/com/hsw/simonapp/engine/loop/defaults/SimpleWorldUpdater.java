@@ -75,12 +75,12 @@ public final class SimpleWorldUpdater implements InputApplier, GameplayDecider, 
 
     @Override
     public WorldState applyInput(FrameContext frameContext, WorldState currentWorldState, InputSnapshot inputSnapshot) {
-        touchInputStateReducer.reduce(inputSnapshot);
         SimpleWorldState nextWorldState = copySimpleWorldState(currentWorldState);
         if (nextWorldState == null) {
             return currentWorldState;
         }
         applyTouchSelections(inputSnapshot, nextWorldState);
+        touchInputStateReducer.reduce(inputSnapshot);
         return nextWorldState;
     }
 
@@ -133,16 +133,29 @@ public final class SimpleWorldUpdater implements InputApplier, GameplayDecider, 
         float touchY = touchInputStateReducer.toWorldY(event);
         SimpleWorldState.EntityState selectedEntity = null;
         for (SimpleWorldState.EntityState entity : worldState.getEntities()) {
-            if (containsTouch(entity, touchX, touchY) && rendersAbove(entity, selectedEntity)) {
+            if (isTouchInteractive(entity)
+                    && containsTouch(entity, touchX, touchY)
+                    && rendersAbove(entity, selectedEntity)) {
                 selectedEntity = entity;
             }
         }
 
         if (selectedEntity != null) {
             worldInteractionController.selectEntity(selectedEntity.getEntityId());
+            if (selectedEntity.getTouchInteraction()
+                    == SimpleWorldState.EntityState.TouchInteraction.MOVE_TO_TOUCH) {
+                touchInputStateReducer.startTouchTarget(event);
+            } else {
+                touchInputStateReducer.clearTouchTarget();
+            }
         } else {
+            touchInputStateReducer.clearTouchTarget();
             worldInteractionController.showWorldCoordinates(touchX, touchY);
         }
+    }
+
+    private static boolean isTouchInteractive(SimpleWorldState.EntityState entity) {
+        return entity.getTouchInteraction() != SimpleWorldState.EntityState.TouchInteraction.NONE;
     }
 
     private static boolean containsTouch(SimpleWorldState.EntityState entity, float touchX, float touchY) {

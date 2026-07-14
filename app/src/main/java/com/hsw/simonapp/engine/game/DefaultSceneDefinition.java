@@ -48,7 +48,7 @@ final class DefaultSceneDefinition implements SceneDefinition {
     @Override
     public WorldState createInitialWorldState() {
         return new SimpleWorldState(Arrays.asList(
-                new SimpleWorldState.EntityState(1, 0, SimpleWorldState.EntityState.ControlMode.HUMAN_TOUCH, TextureCatalog.SIMONFRAME_TEXTURE_SLOT, 0.0f, -3.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.15f),
+                createSimonFrameEntity(),
 
                 createShapeEntity(2,
                         TextureCatalog.LINE_TEXTURE_SLOT,
@@ -93,6 +93,31 @@ final class DefaultSceneDefinition implements SceneDefinition {
         SimpleWorldState layoutState = ((SimpleWorldState) worldState).copy();
         sceneLayout.apply(layoutState, viewportWidth, viewportHeight, camera);
         return layoutState;
+    }
+
+    private static SimpleWorldState.EntityState createSimonFrameEntity() {
+        return new SimpleWorldState.EntityState(1,
+                0,
+                SimpleWorldState.EntityState.ControlMode.AI,
+                TextureCatalog.SIMONFRAME_TEXTURE_SLOT,
+                0.0f,
+                -3.0f,
+                1.0f,
+                0.0f,
+                0.0f,
+                0.0f,
+                0.0f,
+                0.0f,
+                0.0f,
+                0.15f,
+                BlendMode.ALPHA,
+                0,
+                0,
+                ScissorRect.disabled(),
+                TextureRegion.full(),
+                1.0f,
+                1.0f,
+                SimpleWorldState.EntityState.TouchInteraction.NONE);
     }
 
     private static SimpleWorldState.EntityState createShapeEntity(int entityId,
