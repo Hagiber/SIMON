@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">SimonApp</string>
+    <string name="app_name">SIMON</string>
     <string name="vulkan_initializing">Vulkan inicializálás...</string>
     <string name="vulkan_failed">Vulkan hiba: %1$s</string>
     <string name="run_pause_checkbox">Run</string>
