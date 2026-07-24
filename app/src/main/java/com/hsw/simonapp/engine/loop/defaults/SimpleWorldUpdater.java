@@ -17,6 +17,7 @@ public final class SimpleWorldUpdater implements InputApplier, GameplayDecider, 
     private static final float SPRITE_HALF_EXTENT = 0.35f;
     private static final float TOUCH_HIT_MARGIN = 0.04f;
     private static final float DEGREES_TO_RADIANS = 0.0174532925199432957f;
+    private static final float BUTTON_PRESS_ANIMATION_START_STATE = 1.0f;
 
     private final TouchInputStateReducer touchInputStateReducer;
     private final GameplaySystem gameplaySystem;
@@ -142,11 +143,19 @@ public final class SimpleWorldUpdater implements InputApplier, GameplayDecider, 
 
         if (selectedEntity != null) {
             worldInteractionController.selectEntity(selectedEntity.getEntityId());
-            if (selectedEntity.getTouchInteraction()
-                    == SimpleWorldState.EntityState.TouchInteraction.MOVE_TO_TOUCH) {
-                touchInputStateReducer.startTouchTarget(event);
-            } else {
-                touchInputStateReducer.clearTouchTarget();
+            switch (selectedEntity.getTouchInteraction()) {
+                case MOVE_TO_TOUCH:
+                    touchInputStateReducer.startTouchTarget(event);
+                    break;
+                case BUTTON_PRESS:
+                    touchInputStateReducer.clearTouchTarget();
+                    worldInteractionController.requestButtonPress(selectedEntity.getEntityId());
+                    break;
+                case SELECT:
+                case NONE:
+                default:
+                    touchInputStateReducer.clearTouchTarget();
+                    break;
             }
         } else {
             touchInputStateReducer.clearTouchTarget();
@@ -193,6 +202,14 @@ public final class SimpleWorldUpdater implements InputApplier, GameplayDecider, 
 
     private void applyQueuedWorldCommands(SimpleWorldState worldState) {
         Integer entityId;
+        while ((entityId = worldInteractionController.pollButtonPressRequest()) != null) {
+            SimpleWorldState.EntityState entity = worldState.findEntityById(entityId);
+            if (entity == null) {
+                continue;
+            }
+            entity.setAnimationState(BUTTON_PRESS_ANIMATION_START_STATE);
+        }
+
         while ((entityId = worldInteractionController.pollReverseDirectionRequest()) != null) {
             SimpleWorldState.EntityState entity = worldState.findEntityById(entityId);
             if (entity == null) {

@@ -123,6 +123,90 @@ public class SimpleWorldLogicTest {
     }
 
     @Test
+    public void update_startsButtonPressAnimationForTouchedEntity() {
+        WorldInteractionController interactionController = new WorldInteractionController();
+        SimpleWorldUpdater simpleWorldUpdater = new SimpleWorldUpdater(interactionController);
+        SimpleWorldState worldState = new SimpleWorldState(Arrays.asList(
+                new SimpleWorldState.EntityState(3,
+                        0,
+                        SimpleWorldState.EntityState.ControlMode.AI,
+                        0,
+                        0f,
+                        0f,
+                        1f,
+                        0f,
+                        0f,
+                        0f,
+                        0f,
+                        0f,
+                        -4.0f,
+                        0.2f,
+                        BlendMode.ALPHA,
+                        0,
+                        0,
+                        ScissorRect.disabled(),
+                        TextureRegion.full(),
+                        1.0f,
+                        1.0f,
+                        SimpleWorldState.EntityState.TouchInteraction.BUTTON_PRESS)
+        ));
+        TouchInputEvent touchDown = new TouchInputEvent(TouchInputEvent.Action.DOWN,
+                9,
+                50.0f,
+                50.0f,
+                100,
+                100,
+                1L);
+
+        SimpleWorldState updatedWorldState = updateSimpleWorld(simpleWorldUpdater,
+                worldState,
+                new FrameContext(1, 0.0f),
+                new TouchInputSnapshot(Collections.singletonList(touchDown)));
+
+        SimpleWorldState.EntityState entity = updatedWorldState.getEntities().get(0);
+        assertEquals(Integer.valueOf(3), interactionController.getSelectedEntityId());
+        assertEquals(1.0f, entity.getAnimationState(), 0.0001f);
+    }
+
+    @Test
+    public void update_countsDownButtonPressAnimationUntilIdle() {
+        SimpleWorldState worldState = new SimpleWorldState(Arrays.asList(
+                new SimpleWorldState.EntityState(3,
+                        0,
+                        SimpleWorldState.EntityState.ControlMode.AI,
+                        0,
+                        0f,
+                        0f,
+                        1f,
+                        0f,
+                        1.0f,
+                        0f,
+                        0f,
+                        0f,
+                        -4.0f,
+                        0.2f,
+                        BlendMode.ALPHA,
+                        0,
+                        0,
+                        ScissorRect.disabled(),
+                        TextureRegion.full(),
+                        1.0f,
+                        1.0f,
+                        SimpleWorldState.EntityState.TouchInteraction.BUTTON_PRESS)
+        ));
+
+        SimpleWorldState partiallyUpdatedWorldState = updateSimpleWorld(worldState,
+                new FrameContext(1, 0.15f),
+                NeutralInputSnapshot.INSTANCE);
+        SimpleWorldState finishedWorldState = updateSimpleWorld(partiallyUpdatedWorldState,
+                new FrameContext(2, 0.2f),
+                NeutralInputSnapshot.INSTANCE);
+
+        assertEquals(0.4f, partiallyUpdatedWorldState.getEntities().get(0).getAnimationState(), 0.0001f);
+        assertEquals(0.0f, finishedWorldState.getEntities().get(0).getAnimationState(), 0.0001f);
+    }
+
+    @Test
     public void update_appliesDrainedTouchInputToHumanEntity() {
         SimpleWorldState worldState = new SimpleWorldState(Arrays.asList(
                 new SimpleWorldState.EntityState(1,

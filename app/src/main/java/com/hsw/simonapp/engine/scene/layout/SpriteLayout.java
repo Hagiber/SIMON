@@ -19,6 +19,10 @@ public final class SpriteLayout {
         return new SpriteLayout(scale, scale);
     }
 
+    public SpriteLayout multiply(float scaleXMultiplier, float scaleYMultiplier) {
+        return new SpriteLayout(scaleX * scaleXMultiplier, scaleY * scaleYMultiplier);
+    }
+
     public float getScaleX() {
         return scaleX;
     }

@@ -91,6 +91,25 @@ public class SceneLayoutTest {
         assertEquals(1.0f, untouchedEntity.getScaleY(), FLOAT_DELTA);
     }
 
+    @Test
+    public void applyUsesRuleScaleMultipliers() {
+        SimpleWorldState worldState = new SimpleWorldState(Collections.singletonList(
+                createEntity(1, 0)
+        ));
+        SceneLayout sceneLayout = new SceneLayout(slot -> TextureDimensions.of(168, 62),
+                Collections.singletonList(new SpriteLayoutRule(0,
+                        FitMode.FIT_WIDTH,
+                        0.96f,
+                        1.10f,
+                        0.70f)));
+
+        sceneLayout.apply(worldState, 1080, 1920);
+
+        SimpleWorldState.EntityState entity = worldState.findEntityById(1);
+        assertEquals(3.017143f, entity.getScaleX(), FLOAT_DELTA);
+        assertEquals(1.92f, entity.getScaleY(), FLOAT_DELTA);
+    }
+
     private static SimpleWorldState.EntityState createEntity(int entityId, int textureSlot) {
         return new SimpleWorldState.EntityState(entityId,
                 0,

@@ -96,17 +96,35 @@ public final class NativeSceneSnapshotFactory {
     }
 
     private TextureRegion resolveTextureRegion(SimpleWorldState.EntityState entity) {
+        if (entity.getTextureSlot() == TextureCatalog.RED_BUTTON_TEXTURE_SLOT) {
+            return resolveRedButtonTextureRegion(entity);
+        }
+
         if (entity.getTextureSlot() != TextureCatalog.FIRE_ATLAS_TEXTURE_SLOT) {
             return entity.getTextureRegion();
         }
 
         int frameIndex = (int) Math.floor(entity.getAnimationState());
-        int wrappedFrameIndex = Math.floorMod(frameIndex, FIRE_ATLAS_FRAME_COUNT);
-        int column = wrappedFrameIndex % FIRE_ATLAS_COLUMNS;
-        int row = wrappedFrameIndex / FIRE_ATLAS_COLUMNS;
+        return atlasTextureRegion(frameIndex, FIRE_ATLAS_COLUMNS, FIRE_ATLAS_ROWS, FIRE_ATLAS_FRAME_COUNT);
+    }
 
-        float widthUv = 1.0f / FIRE_ATLAS_COLUMNS;
-        float heightUv = 1.0f / FIRE_ATLAS_ROWS;
+    private static TextureRegion resolveRedButtonTextureRegion(SimpleWorldState.EntityState entity) {
+        float activeAnimationState = Math.max(0.0f, Math.min(1.0f, entity.getAnimationState()));
+        float progress = 1.0f - activeAnimationState;
+        int frameIndex = (int) Math.floor(progress * TextureCatalog.RED_BUTTON_PRESS_ATLAS_FRAME_COUNT);
+        return atlasTextureRegion(frameIndex,
+                TextureCatalog.RED_BUTTON_PRESS_ATLAS_COLUMNS,
+                TextureCatalog.RED_BUTTON_PRESS_ATLAS_ROWS,
+                TextureCatalog.RED_BUTTON_PRESS_ATLAS_FRAME_COUNT);
+    }
+
+    private static TextureRegion atlasTextureRegion(int frameIndex, int columns, int rows, int frameCount) {
+        int wrappedFrameIndex = Math.floorMod(frameIndex, frameCount);
+        int column = wrappedFrameIndex % columns;
+        int row = wrappedFrameIndex / columns;
+
+        float widthUv = 1.0f / columns;
+        float heightUv = 1.0f / rows;
         float u = column * widthUv;
         float v = row * heightUv;
         return new TextureRegion(u, v, widthUv, heightUv);

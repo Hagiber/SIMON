@@ -41,7 +41,7 @@ public final class SceneLayout {
                     textureDimensions,
                     rule.getFitMode(),
                     rule.getFillRatio(),
-                    camera);
+                    camera).multiply(rule.getScaleXMultiplier(), rule.getScaleYMultiplier());
             applyToEntitiesWithTextureSlot(worldState, rule.getTextureSlot(), spriteLayout);
         }
     }

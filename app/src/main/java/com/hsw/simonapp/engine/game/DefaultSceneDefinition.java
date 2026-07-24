@@ -20,6 +20,8 @@ import java.util.List;
 
 final class DefaultSceneDefinition implements SceneDefinition {
 
+    private static final float RED_BUTTON_PRESS_ANIMATION_SPEED = -2.0f;
+
     private final List<TextureSpec> textureSpecs;
     private final List<ShapeTextureRegistration> shapeTextureRegistrations;
     private final CameraLayoutPolicy cameraLayoutPolicy;
@@ -30,9 +32,14 @@ final class DefaultSceneDefinition implements SceneDefinition {
         this.shapeTextureRegistrations = Collections.unmodifiableList(TextureCatalog.defaultShapeTextures());
         this.cameraLayoutPolicy = new CameraLayoutPolicy(2.0f, 2.0f, FitMode.FIT_SHORT_SIDE);
         this.sceneLayout = new SceneLayout(TextureCatalog::textureDimensionsForSlot,
-                Collections.singletonList(new SpriteLayoutRule(TextureCatalog.SIMONFRAME_TEXTURE_SLOT,
-                        FitMode.FIT_WIDTH,
-                        0.96f)));
+                Arrays.asList(new SpriteLayoutRule(TextureCatalog.SIMONFRAME_TEXTURE_SLOT,
+                                FitMode.FIT_WIDTH,
+                                0.96f),
+                        new SpriteLayoutRule(TextureCatalog.RED_BUTTON_TEXTURE_SLOT,
+                                FitMode.FIT_WIDTH,
+                                0.32f,
+                                1.0f,
+                                0.6f)));
     }
 
     @Override
@@ -49,20 +56,7 @@ final class DefaultSceneDefinition implements SceneDefinition {
     public WorldState createInitialWorldState() {
         return new SimpleWorldState(Arrays.asList(
                 createSimonFrameEntity(),
-
-                createShapeEntity(2,
-                        TextureCatalog.LINE_TEXTURE_SLOT,
-                        -0.55f,
-                        -0.48f,
-                        0.7f,
-                        18.0f,
-                        0.16f,
-                        0.12f,
-                        -26.0f,
-                        0.10f,
-                        0.95f,
-                        1.0f,
-                        1)
+                createRedButtonEntity()
         ));
     }
 
@@ -120,39 +114,28 @@ final class DefaultSceneDefinition implements SceneDefinition {
                 SimpleWorldState.EntityState.TouchInteraction.NONE);
     }
 
-    private static SimpleWorldState.EntityState createShapeEntity(int entityId,
-                                                                  int textureSlot,
-                                                                  float x,
-                                                                  float y,
-                                                                  float z,
-                                                                  float rotationDeg,
-                                                                  float velocityX,
-                                                                  float velocityY,
-                                                                  float angularVelocityDeg,
-                                                                  float collisionRadius,
-                                                                  float scaleX,
-                                                                  float scaleY,
-                                                                  int renderOrder) {
-        return new SimpleWorldState.EntityState(entityId,
-                1,
+    private static SimpleWorldState.EntityState createRedButtonEntity() {
+        return new SimpleWorldState.EntityState(3,
+                0,
                 SimpleWorldState.EntityState.ControlMode.AI,
-                textureSlot,
-                x,
-                y,
-                z,
-                rotationDeg,
+                TextureCatalog.RED_BUTTON_TEXTURE_SLOT,
+                -0.30f,
+                -1.31f,
+                0.95f,
                 0.0f,
-                velocityX,
-                velocityY,
-                angularVelocityDeg,
                 0.0f,
-                collisionRadius,
+                0.0f,
+                0.0f,
+                0.0f,
+                RED_BUTTON_PRESS_ANIMATION_SPEED,
+                0.18f,
                 BlendMode.ALPHA,
                 1,
-                renderOrder,
+                0,
                 ScissorRect.disabled(),
                 TextureRegion.full(),
-                scaleX,
-                scaleY);
+                2.0f,
+                2.0f,
+                SimpleWorldState.EntityState.TouchInteraction.BUTTON_PRESS);
     }
 }

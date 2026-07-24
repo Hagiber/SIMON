@@ -35,6 +35,14 @@ final class PhysicsSystem {
         entity.setX(nextX);
         entity.setY(nextY);
         entity.setRotationDeg(entity.getRotationDeg() + entity.getAngularVelocityDeg() * deltaSeconds);
-        entity.setAnimationState(entity.getAnimationState() + entity.getAnimationSpeed() * deltaSeconds);
+        entity.setAnimationState(nextAnimationState(entity, deltaSeconds));
+    }
+
+    private static float nextAnimationState(SimpleWorldState.EntityState entity, float deltaSeconds) {
+        float nextAnimationState = entity.getAnimationState() + entity.getAnimationSpeed() * deltaSeconds;
+        if (entity.getAnimationSpeed() < 0.0f) {
+            return Math.max(0.0f, nextAnimationState);
+        }
+        return nextAnimationState;
     }
 }

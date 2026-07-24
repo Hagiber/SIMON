@@ -38,7 +38,7 @@ public class SimpleWorldStateSaveMapperTest {
                 new TextureRegion(0.1f, 0.2f, 0.3f, 0.4f),
                 0.6f,
                 1.4f,
-                SimpleWorldState.EntityState.TouchInteraction.SELECT);
+                SimpleWorldState.EntityState.TouchInteraction.BUTTON_PRESS);
         SimpleWorldState originalWorld = new SimpleWorldState(Collections.singletonList(originalEntity));
 
         SimpleWorldStateSaveMapper mapper = new SimpleWorldStateSaveMapper();

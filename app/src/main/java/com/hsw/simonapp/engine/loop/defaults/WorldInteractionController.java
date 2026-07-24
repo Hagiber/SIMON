@@ -11,6 +11,7 @@ public final class WorldInteractionController {
 
     private final AtomicInteger selectedEntityId = new AtomicInteger(NO_SELECTED_ENTITY);
     private final ConcurrentLinkedQueue<Integer> reverseDirectionRequests = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<Integer> buttonPressRequests = new ConcurrentLinkedQueue<>();
 
     private volatile Consumer<Integer> selectedEntityListener;
     private volatile BiConsumer<Float, Float> worldCoordinateTouchListener;
@@ -56,7 +57,15 @@ public final class WorldInteractionController {
         return true;
     }
 
+    public void requestButtonPress(int entityId) {
+        buttonPressRequests.add(entityId);
+    }
+
     Integer pollReverseDirectionRequest() {
         return reverseDirectionRequests.poll();
+    }
+
+    Integer pollButtonPressRequest() {
+        return buttonPressRequests.poll();
     }
 }

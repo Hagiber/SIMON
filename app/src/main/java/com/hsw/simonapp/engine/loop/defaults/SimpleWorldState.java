@@ -51,7 +51,8 @@ public final class SimpleWorldState implements WorldState {
         public enum TouchInteraction {
             NONE,
             SELECT,
-            MOVE_TO_TOUCH
+            MOVE_TO_TOUCH,
+            BUTTON_PRESS
         }
 
         private final int entityId;
