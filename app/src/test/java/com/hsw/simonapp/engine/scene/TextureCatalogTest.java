@@ -17,22 +17,30 @@ public class TextureCatalogTest {
 
         assertEquals(TextureCatalog.SIMONFRAME_TEXTURE_SLOT, 0);
         assertEquals("SIMON_frame.png", textures.get(TextureCatalog.SIMONFRAME_TEXTURE_SLOT).getAssetName());
-        assertEquals(TextureCatalog.RED_BUTTON_TEXTURE_SLOT, 1);
-        assertEquals(TextureCatalog.RED_BUTTON_PRESS_ATLAS_ASSET,
-                textures.get(TextureCatalog.RED_BUTTON_TEXTURE_SLOT).getAssetName());
-        assertEquals(TextureCatalog.FIRE_ATLAS_TEXTURE_SLOT, 2);
-        assertEquals(TextureCatalog.FIRE_ATLAS_IMAGE_ASSET,
-                textures.get(TextureCatalog.FIRE_ATLAS_TEXTURE_SLOT).getAssetName());
-        assertEquals(TextureCatalog.GREEN_BUTTON_TEXTURE_SLOT, 3);
-        assertEquals(TextureCatalog.GREEN_BUTTON_PRESS_ATLAS_ASSET,
-                textures.get(TextureCatalog.GREEN_BUTTON_TEXTURE_SLOT).getAssetName());
+        assertEquals(TextureCatalog.BUTTON_PRESS_ATLAS_TEXTURE_SLOT, 1);
+        assertEquals(TextureCatalog.BUTTON_PRESS_ATLAS_ASSET,
+                textures.get(TextureCatalog.BUTTON_PRESS_ATLAS_TEXTURE_SLOT).getAssetName());
+        assertEquals(TextureCatalog.RED_BUTTON_TEXTURE_SLOT, TextureCatalog.BUTTON_PRESS_ATLAS_TEXTURE_SLOT);
+        assertEquals(TextureCatalog.GREEN_BUTTON_TEXTURE_SLOT, 2);
+        assertEquals(TextureCatalog.BLUE_BUTTON_TEXTURE_SLOT, 3);
+        assertEquals(TextureCatalog.YELLOW_BUTTON_TEXTURE_SLOT, 4);
+        assertEquals(2, textures.size());
     }
 
     @Test
-    public void redButtonAtlas_hasPressSequenceGrid() {
-        assertEquals(4, TextureCatalog.RED_BUTTON_PRESS_ATLAS_COLUMNS);
-        assertEquals(3, TextureCatalog.RED_BUTTON_PRESS_ATLAS_ROWS);
-        assertEquals(11, TextureCatalog.RED_BUTTON_PRESS_ATLAS_FRAME_COUNT);
+    public void buttonPressAtlas_hasSharedSequenceGrid() {
+        assertEquals(8, TextureCatalog.BUTTON_PRESS_ATLAS_COLUMNS);
+        assertEquals(6, TextureCatalog.BUTTON_PRESS_ATLAS_ROWS);
+        assertEquals(48, TextureCatalog.BUTTON_PRESS_ATLAS_TOTAL_CELLS);
+        assertEquals(11, TextureCatalog.BUTTON_PRESS_FRAME_COUNT);
+    }
+
+    @Test
+    public void buttonColorIndexForSlot_mapsSimonButtonSlots() {
+        assertEquals(0, TextureCatalog.buttonColorIndexForSlot(TextureCatalog.RED_BUTTON_TEXTURE_SLOT));
+        assertEquals(1, TextureCatalog.buttonColorIndexForSlot(TextureCatalog.GREEN_BUTTON_TEXTURE_SLOT));
+        assertEquals(2, TextureCatalog.buttonColorIndexForSlot(TextureCatalog.BLUE_BUTTON_TEXTURE_SLOT));
+        assertEquals(3, TextureCatalog.buttonColorIndexForSlot(TextureCatalog.YELLOW_BUTTON_TEXTURE_SLOT));
     }
 
     @Test
@@ -53,6 +61,24 @@ public class TextureCatalogTest {
     public void textureDimensions_includeGreenButton() {
         TextureDimensions dimensions =
                 TextureCatalog.textureDimensionsForSlot(TextureCatalog.GREEN_BUTTON_TEXTURE_SLOT);
+
+        assertEquals(455, dimensions.getWidth());
+        assertEquals(455, dimensions.getHeight());
+    }
+
+    @Test
+    public void textureDimensions_includeBlueButton() {
+        TextureDimensions dimensions =
+                TextureCatalog.textureDimensionsForSlot(TextureCatalog.BLUE_BUTTON_TEXTURE_SLOT);
+
+        assertEquals(455, dimensions.getWidth());
+        assertEquals(455, dimensions.getHeight());
+    }
+
+    @Test
+    public void textureDimensions_includeYellowButton() {
+        TextureDimensions dimensions =
+                TextureCatalog.textureDimensionsForSlot(TextureCatalog.YELLOW_BUTTON_TEXTURE_SLOT);
 
         assertEquals(455, dimensions.getWidth());
         assertEquals(455, dimensions.getHeight());

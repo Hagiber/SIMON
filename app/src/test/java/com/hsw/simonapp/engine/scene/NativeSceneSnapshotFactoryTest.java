@@ -111,11 +111,12 @@ public class NativeSceneSnapshotFactoryTest {
                 .create(renderFrameState(worldState, worldState, 0.0f));
         SceneSnapshot currentSnapshot = sceneSnapshot(sceneFrame, "currentSceneSnapshot");
 
-        assertArrayEquals(new int[]{TextureCatalog.RED_BUTTON_TEXTURE_SLOT}, intArray(currentSnapshot, "textureSlots"));
-        assertArrayEquals(new float[]{1.0f / 4.0f}, floatArray(currentSnapshot, "textureUs"), 0.0001f);
-        assertArrayEquals(new float[]{1.0f / 3.0f}, floatArray(currentSnapshot, "textureVs"), 0.0001f);
-        assertArrayEquals(new float[]{1.0f / 4.0f}, floatArray(currentSnapshot, "textureWidthUvs"), 0.0001f);
-        assertArrayEquals(new float[]{1.0f / 3.0f}, floatArray(currentSnapshot, "textureHeightUvs"), 0.0001f);
+        assertArrayEquals(new int[]{TextureCatalog.BUTTON_PRESS_ATLAS_TEXTURE_SLOT},
+                intArray(currentSnapshot, "textureSlots"));
+        assertArrayEquals(new float[]{5.0f / 8.0f}, floatArray(currentSnapshot, "textureUs"), 0.0001f);
+        assertArrayEquals(new float[]{0.0f}, floatArray(currentSnapshot, "textureVs"), 0.0001f);
+        assertArrayEquals(new float[]{1.0f / 8.0f}, floatArray(currentSnapshot, "textureWidthUvs"), 0.0001f);
+        assertArrayEquals(new float[]{1.0f / 6.0f}, floatArray(currentSnapshot, "textureHeightUvs"), 0.0001f);
         assertArrayEquals(new float[]{2.0f}, floatArray(currentSnapshot, "scaleXs"), 0.0001f);
         assertArrayEquals(new float[]{0.75f}, floatArray(currentSnapshot, "scaleYs"), 0.0001f);
     }
@@ -132,8 +133,8 @@ public class NativeSceneSnapshotFactoryTest {
 
         assertArrayEquals(new float[]{0.0f}, floatArray(currentSnapshot, "textureUs"), 0.0001f);
         assertArrayEquals(new float[]{0.0f}, floatArray(currentSnapshot, "textureVs"), 0.0001f);
-        assertArrayEquals(new float[]{1.0f / 4.0f}, floatArray(currentSnapshot, "textureWidthUvs"), 0.0001f);
-        assertArrayEquals(new float[]{1.0f / 3.0f}, floatArray(currentSnapshot, "textureHeightUvs"), 0.0001f);
+        assertArrayEquals(new float[]{1.0f / 8.0f}, floatArray(currentSnapshot, "textureWidthUvs"), 0.0001f);
+        assertArrayEquals(new float[]{1.0f / 6.0f}, floatArray(currentSnapshot, "textureHeightUvs"), 0.0001f);
     }
 
     @Test
@@ -148,25 +149,40 @@ public class NativeSceneSnapshotFactoryTest {
 
         assertArrayEquals(new float[]{0.0f}, floatArray(currentSnapshot, "textureUs"), 0.0001f);
         assertArrayEquals(new float[]{0.0f}, floatArray(currentSnapshot, "textureVs"), 0.0001f);
-        assertArrayEquals(new float[]{1.0f / 4.0f}, floatArray(currentSnapshot, "textureWidthUvs"), 0.0001f);
-        assertArrayEquals(new float[]{1.0f / 3.0f}, floatArray(currentSnapshot, "textureHeightUvs"), 0.0001f);
+        assertArrayEquals(new float[]{1.0f / 8.0f}, floatArray(currentSnapshot, "textureWidthUvs"), 0.0001f);
+        assertArrayEquals(new float[]{1.0f / 6.0f}, floatArray(currentSnapshot, "textureHeightUvs"), 0.0001f);
     }
 
     @Test
-    public void create_usesGreenButtonPressAtlasFrame() throws Exception {
-        SimpleWorldState worldState = new SimpleWorldState(Arrays.asList(
-                buttonEntityWithAnimationState(TextureCatalog.GREEN_BUTTON_TEXTURE_SLOT, 0.5f)
-        ));
+    public void create_usesSharedButtonPressAtlasForAllSimonButtons() throws Exception {
+        int[] buttonSlots = new int[]{
+                TextureCatalog.RED_BUTTON_TEXTURE_SLOT,
+                TextureCatalog.GREEN_BUTTON_TEXTURE_SLOT,
+                TextureCatalog.BLUE_BUTTON_TEXTURE_SLOT,
+                TextureCatalog.YELLOW_BUTTON_TEXTURE_SLOT
+        };
 
-        SceneFrame sceneFrame = new NativeSceneSnapshotFactory()
-                .create(renderFrameState(worldState, worldState, 0.0f));
-        SceneSnapshot currentSnapshot = sceneSnapshot(sceneFrame, "currentSceneSnapshot");
+        for (int buttonSlot : buttonSlots) {
+            SimpleWorldState worldState = new SimpleWorldState(Arrays.asList(
+                    buttonEntityWithAnimationState(buttonSlot, 0.5f)
+            ));
 
-        assertArrayEquals(new int[]{TextureCatalog.GREEN_BUTTON_TEXTURE_SLOT}, intArray(currentSnapshot, "textureSlots"));
-        assertArrayEquals(new float[]{1.0f / 4.0f}, floatArray(currentSnapshot, "textureUs"), 0.0001f);
-        assertArrayEquals(new float[]{1.0f / 3.0f}, floatArray(currentSnapshot, "textureVs"), 0.0001f);
-        assertArrayEquals(new float[]{1.0f / 4.0f}, floatArray(currentSnapshot, "textureWidthUvs"), 0.0001f);
-        assertArrayEquals(new float[]{1.0f / 3.0f}, floatArray(currentSnapshot, "textureHeightUvs"), 0.0001f);
+            SceneFrame sceneFrame = new NativeSceneSnapshotFactory()
+                    .create(renderFrameState(worldState, worldState, 0.0f));
+            SceneSnapshot currentSnapshot = sceneSnapshot(sceneFrame, "currentSceneSnapshot");
+
+            int atlasFrameIndex =
+                    TextureCatalog.buttonColorIndexForSlot(buttonSlot) * TextureCatalog.BUTTON_PRESS_FRAME_COUNT + 5;
+            int expectedColumn = atlasFrameIndex % TextureCatalog.BUTTON_PRESS_ATLAS_COLUMNS;
+            int expectedRow = atlasFrameIndex / TextureCatalog.BUTTON_PRESS_ATLAS_COLUMNS;
+
+            assertArrayEquals(new int[]{TextureCatalog.BUTTON_PRESS_ATLAS_TEXTURE_SLOT},
+                    intArray(currentSnapshot, "textureSlots"));
+            assertArrayEquals(new float[]{expectedColumn / 8.0f}, floatArray(currentSnapshot, "textureUs"), 0.0001f);
+            assertArrayEquals(new float[]{expectedRow / 6.0f}, floatArray(currentSnapshot, "textureVs"), 0.0001f);
+            assertArrayEquals(new float[]{1.0f / 8.0f}, floatArray(currentSnapshot, "textureWidthUvs"), 0.0001f);
+            assertArrayEquals(new float[]{1.0f / 6.0f}, floatArray(currentSnapshot, "textureHeightUvs"), 0.0001f);
+        }
     }
 
     @Test

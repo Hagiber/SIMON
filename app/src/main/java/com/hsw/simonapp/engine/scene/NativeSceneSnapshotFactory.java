@@ -65,7 +65,7 @@ public final class NativeSceneSnapshotFactory {
 
         for (int i = 0; i < count; i++) {
             SimpleWorldState.EntityState entity = entities.get(i);
-            textureSlots[i] = entity.getTextureSlot();
+            textureSlots[i] = resolveNativeTextureSlot(entity);
             blendModes[i] = entity.getBlendMode();
             layers[i] = entity.getLayer();
             renderOrders[i] = entity.getRenderOrder();
@@ -95,9 +95,15 @@ public final class NativeSceneSnapshotFactory {
                 textureRegions);
     }
 
+    private int resolveNativeTextureSlot(SimpleWorldState.EntityState entity) {
+        if (TextureCatalog.isButtonTextureSlot(entity.getTextureSlot())) {
+            return TextureCatalog.BUTTON_PRESS_ATLAS_TEXTURE_SLOT;
+        }
+        return entity.getTextureSlot();
+    }
+
     private TextureRegion resolveTextureRegion(SimpleWorldState.EntityState entity) {
-        if (entity.getTextureSlot() == TextureCatalog.RED_BUTTON_TEXTURE_SLOT
-                || entity.getTextureSlot() == TextureCatalog.GREEN_BUTTON_TEXTURE_SLOT) {
+        if (TextureCatalog.isButtonTextureSlot(entity.getTextureSlot())) {
             return resolveButtonPressTextureRegion(entity);
         }
 
@@ -112,11 +118,16 @@ public final class NativeSceneSnapshotFactory {
     private static TextureRegion resolveButtonPressTextureRegion(SimpleWorldState.EntityState entity) {
         float activeAnimationState = Math.max(0.0f, Math.min(1.0f, entity.getAnimationState()));
         float progress = 1.0f - activeAnimationState;
-        int frameIndex = (int) Math.floor(progress * TextureCatalog.RED_BUTTON_PRESS_ATLAS_FRAME_COUNT);
-        return atlasTextureRegion(frameIndex,
-                TextureCatalog.RED_BUTTON_PRESS_ATLAS_COLUMNS,
-                TextureCatalog.RED_BUTTON_PRESS_ATLAS_ROWS,
-                TextureCatalog.RED_BUTTON_PRESS_ATLAS_FRAME_COUNT);
+        int frameIndex = (int) Math.floor(progress * TextureCatalog.BUTTON_PRESS_FRAME_COUNT);
+        int wrappedFrameIndex = Math.floorMod(frameIndex, TextureCatalog.BUTTON_PRESS_FRAME_COUNT);
+        int atlasFrameIndex =
+                TextureCatalog.buttonColorIndexForSlot(entity.getTextureSlot())
+                        * TextureCatalog.BUTTON_PRESS_FRAME_COUNT
+                        + wrappedFrameIndex;
+        return atlasTextureRegion(atlasFrameIndex,
+                TextureCatalog.BUTTON_PRESS_ATLAS_COLUMNS,
+                TextureCatalog.BUTTON_PRESS_ATLAS_ROWS,
+                TextureCatalog.BUTTON_PRESS_ATLAS_TOTAL_CELLS);
     }
 
     private static TextureRegion atlasTextureRegion(int frameIndex, int columns, int rows, int frameCount) {

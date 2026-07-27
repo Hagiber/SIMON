@@ -44,6 +44,16 @@ final class DefaultSceneDefinition implements SceneDefinition {
                                 FitMode.FIT_WIDTH,
                                 0.32f,
                                 1.0f,
+                                0.6f),
+                        new SpriteLayoutRule(TextureCatalog.BLUE_BUTTON_TEXTURE_SLOT,
+                                FitMode.FIT_WIDTH,
+                                0.32f,
+                                1.0f,
+                                0.6f),
+                        new SpriteLayoutRule(TextureCatalog.YELLOW_BUTTON_TEXTURE_SLOT,
+                                FitMode.FIT_WIDTH,
+                                0.32f,
+                                1.0f,
                                 0.6f)));
     }
 
@@ -62,7 +72,9 @@ final class DefaultSceneDefinition implements SceneDefinition {
         return new SimpleWorldState(Arrays.asList(
                 createSimonFrameEntity(),
                 createRedButtonEntity(),
-                createGreenButtonEntity()
+                createGreenButtonEntity(),
+                createBlueButtonEntity(),
+                createYellowButtonEntity()
         ));
     }
 
@@ -121,37 +133,31 @@ final class DefaultSceneDefinition implements SceneDefinition {
     }
 
     private static SimpleWorldState.EntityState createRedButtonEntity() {
-        return new SimpleWorldState.EntityState(3,
-                0,
-                SimpleWorldState.EntityState.ControlMode.AI,
-                TextureCatalog.RED_BUTTON_TEXTURE_SLOT,
-                -0.30f,
-                -1.31f,
-                0.95f,
-                0.0f,
-                0.0f,
-                0.0f,
-                0.0f,
-                0.0f,
-                BUTTON_PRESS_ANIMATION_SPEED,
-                0.18f,
-                BlendMode.ALPHA,
-                1,
-                0,
-                ScissorRect.disabled(),
-                TextureRegion.full(),
-                2.0f,
-                2.0f,
-                SimpleWorldState.EntityState.TouchInteraction.BUTTON_PRESS);
+        return createButtonEntity(3, TextureCatalog.RED_BUTTON_TEXTURE_SLOT, 0.33f, -1.31f);
     }
 
     private static SimpleWorldState.EntityState createGreenButtonEntity() {
-        return new SimpleWorldState.EntityState(4,
+        return createButtonEntity(4, TextureCatalog.GREEN_BUTTON_TEXTURE_SLOT, -0.30f, -1.31f);
+    }
+
+    private static SimpleWorldState.EntityState createBlueButtonEntity() {
+        return createButtonEntity(5, TextureCatalog.BLUE_BUTTON_TEXTURE_SLOT, 0.33f, -0.78f);
+    }
+
+    private static SimpleWorldState.EntityState createYellowButtonEntity() {
+        return createButtonEntity(6, TextureCatalog.YELLOW_BUTTON_TEXTURE_SLOT, -0.30f, -0.78f);
+    }
+
+    private static SimpleWorldState.EntityState createButtonEntity(int entityId,
+                                                                  int textureSlot,
+                                                                  float x,
+                                                                  float y) {
+        return new SimpleWorldState.EntityState(entityId,
                 0,
                 SimpleWorldState.EntityState.ControlMode.AI,
-                TextureCatalog.GREEN_BUTTON_TEXTURE_SLOT,
-                0.33f,
-                -1.31f,
+                textureSlot,
+                x,
+                y,
                 0.95f,
                 0.0f,
                 0.0f,

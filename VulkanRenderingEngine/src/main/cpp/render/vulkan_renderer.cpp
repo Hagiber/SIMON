@@ -19,7 +19,7 @@
 namespace {
 
 constexpr const char *kTag = "NativeLibVulkan";
-constexpr uint32_t kTextureUploadsPerFrame = 2;
+constexpr uint32_t kTextureUploadsPerFrame = 8;
 constexpr uint64_t kFenceWaitTimeoutNanos = 100'000'000ULL;
 constexpr bool kUseSwappyFramePacing = false;
 
