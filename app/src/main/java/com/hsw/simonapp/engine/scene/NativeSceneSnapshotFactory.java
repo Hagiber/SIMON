@@ -96,8 +96,9 @@ public final class NativeSceneSnapshotFactory {
     }
 
     private TextureRegion resolveTextureRegion(SimpleWorldState.EntityState entity) {
-        if (entity.getTextureSlot() == TextureCatalog.RED_BUTTON_TEXTURE_SLOT) {
-            return resolveRedButtonTextureRegion(entity);
+        if (entity.getTextureSlot() == TextureCatalog.RED_BUTTON_TEXTURE_SLOT
+                || entity.getTextureSlot() == TextureCatalog.GREEN_BUTTON_TEXTURE_SLOT) {
+            return resolveButtonPressTextureRegion(entity);
         }
 
         if (entity.getTextureSlot() != TextureCatalog.FIRE_ATLAS_TEXTURE_SLOT) {
@@ -108,7 +109,7 @@ public final class NativeSceneSnapshotFactory {
         return atlasTextureRegion(frameIndex, FIRE_ATLAS_COLUMNS, FIRE_ATLAS_ROWS, FIRE_ATLAS_FRAME_COUNT);
     }
 
-    private static TextureRegion resolveRedButtonTextureRegion(SimpleWorldState.EntityState entity) {
+    private static TextureRegion resolveButtonPressTextureRegion(SimpleWorldState.EntityState entity) {
         float activeAnimationState = Math.max(0.0f, Math.min(1.0f, entity.getAnimationState()));
         float progress = 1.0f - activeAnimationState;
         int frameIndex = (int) Math.floor(progress * TextureCatalog.RED_BUTTON_PRESS_ATLAS_FRAME_COUNT);

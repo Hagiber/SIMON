@@ -20,6 +20,12 @@ public class TextureCatalogTest {
         assertEquals(TextureCatalog.RED_BUTTON_TEXTURE_SLOT, 1);
         assertEquals(TextureCatalog.RED_BUTTON_PRESS_ATLAS_ASSET,
                 textures.get(TextureCatalog.RED_BUTTON_TEXTURE_SLOT).getAssetName());
+        assertEquals(TextureCatalog.FIRE_ATLAS_TEXTURE_SLOT, 2);
+        assertEquals(TextureCatalog.FIRE_ATLAS_IMAGE_ASSET,
+                textures.get(TextureCatalog.FIRE_ATLAS_TEXTURE_SLOT).getAssetName());
+        assertEquals(TextureCatalog.GREEN_BUTTON_TEXTURE_SLOT, 3);
+        assertEquals(TextureCatalog.GREEN_BUTTON_PRESS_ATLAS_ASSET,
+                textures.get(TextureCatalog.GREEN_BUTTON_TEXTURE_SLOT).getAssetName());
     }
 
     @Test
@@ -38,6 +44,15 @@ public class TextureCatalogTest {
     public void textureDimensions_includeRedButton() {
         TextureDimensions dimensions =
                 TextureCatalog.textureDimensionsForSlot(TextureCatalog.RED_BUTTON_TEXTURE_SLOT);
+
+        assertEquals(455, dimensions.getWidth());
+        assertEquals(455, dimensions.getHeight());
+    }
+
+    @Test
+    public void textureDimensions_includeGreenButton() {
+        TextureDimensions dimensions =
+                TextureCatalog.textureDimensionsForSlot(TextureCatalog.GREEN_BUTTON_TEXTURE_SLOT);
 
         assertEquals(455, dimensions.getWidth());
         assertEquals(455, dimensions.getHeight());

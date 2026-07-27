@@ -20,7 +20,7 @@ import java.util.List;
 
 final class DefaultSceneDefinition implements SceneDefinition {
 
-    private static final float RED_BUTTON_PRESS_ANIMATION_SPEED = -2.0f;
+    private static final float BUTTON_PRESS_ANIMATION_SPEED = -2.0f;
 
     private final List<TextureSpec> textureSpecs;
     private final List<ShapeTextureRegistration> shapeTextureRegistrations;
@@ -36,6 +36,11 @@ final class DefaultSceneDefinition implements SceneDefinition {
                                 FitMode.FIT_WIDTH,
                                 0.96f),
                         new SpriteLayoutRule(TextureCatalog.RED_BUTTON_TEXTURE_SLOT,
+                                FitMode.FIT_WIDTH,
+                                0.32f,
+                                1.0f,
+                                0.6f),
+                        new SpriteLayoutRule(TextureCatalog.GREEN_BUTTON_TEXTURE_SLOT,
                                 FitMode.FIT_WIDTH,
                                 0.32f,
                                 1.0f,
@@ -56,7 +61,8 @@ final class DefaultSceneDefinition implements SceneDefinition {
     public WorldState createInitialWorldState() {
         return new SimpleWorldState(Arrays.asList(
                 createSimonFrameEntity(),
-                createRedButtonEntity()
+                createRedButtonEntity(),
+                createGreenButtonEntity()
         ));
     }
 
@@ -127,7 +133,32 @@ final class DefaultSceneDefinition implements SceneDefinition {
                 0.0f,
                 0.0f,
                 0.0f,
-                RED_BUTTON_PRESS_ANIMATION_SPEED,
+                BUTTON_PRESS_ANIMATION_SPEED,
+                0.18f,
+                BlendMode.ALPHA,
+                1,
+                0,
+                ScissorRect.disabled(),
+                TextureRegion.full(),
+                2.0f,
+                2.0f,
+                SimpleWorldState.EntityState.TouchInteraction.BUTTON_PRESS);
+    }
+
+    private static SimpleWorldState.EntityState createGreenButtonEntity() {
+        return new SimpleWorldState.EntityState(4,
+                0,
+                SimpleWorldState.EntityState.ControlMode.AI,
+                TextureCatalog.GREEN_BUTTON_TEXTURE_SLOT,
+                0.33f,
+                -1.31f,
+                0.95f,
+                0.0f,
+                0.0f,
+                0.0f,
+                0.0f,
+                0.0f,
+                BUTTON_PRESS_ANIMATION_SPEED,
                 0.18f,
                 BlendMode.ALPHA,
                 1,

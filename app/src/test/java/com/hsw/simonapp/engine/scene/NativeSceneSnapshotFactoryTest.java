@@ -153,6 +153,23 @@ public class NativeSceneSnapshotFactoryTest {
     }
 
     @Test
+    public void create_usesGreenButtonPressAtlasFrame() throws Exception {
+        SimpleWorldState worldState = new SimpleWorldState(Arrays.asList(
+                buttonEntityWithAnimationState(TextureCatalog.GREEN_BUTTON_TEXTURE_SLOT, 0.5f)
+        ));
+
+        SceneFrame sceneFrame = new NativeSceneSnapshotFactory()
+                .create(renderFrameState(worldState, worldState, 0.0f));
+        SceneSnapshot currentSnapshot = sceneSnapshot(sceneFrame, "currentSceneSnapshot");
+
+        assertArrayEquals(new int[]{TextureCatalog.GREEN_BUTTON_TEXTURE_SLOT}, intArray(currentSnapshot, "textureSlots"));
+        assertArrayEquals(new float[]{1.0f / 4.0f}, floatArray(currentSnapshot, "textureUs"), 0.0001f);
+        assertArrayEquals(new float[]{1.0f / 3.0f}, floatArray(currentSnapshot, "textureVs"), 0.0001f);
+        assertArrayEquals(new float[]{1.0f / 4.0f}, floatArray(currentSnapshot, "textureWidthUvs"), 0.0001f);
+        assertArrayEquals(new float[]{1.0f / 3.0f}, floatArray(currentSnapshot, "textureHeightUvs"), 0.0001f);
+    }
+
+    @Test
     public void create_flipsWorldYForVulkanCoordinates() throws Exception {
         SimpleWorldState worldState = new SimpleWorldState(Arrays.asList(
                 new SimpleWorldState.EntityState(1,
@@ -213,10 +230,14 @@ public class NativeSceneSnapshotFactoryTest {
     }
 
     private static SimpleWorldState.EntityState redButtonEntityWithAnimationState(float animationState) {
+        return buttonEntityWithAnimationState(TextureCatalog.RED_BUTTON_TEXTURE_SLOT, animationState);
+    }
+
+    private static SimpleWorldState.EntityState buttonEntityWithAnimationState(int textureSlot, float animationState) {
         return new SimpleWorldState.EntityState(3,
                 0,
                 SimpleWorldState.EntityState.ControlMode.AI,
-                TextureCatalog.RED_BUTTON_TEXTURE_SLOT,
+                textureSlot,
                 0f,
                 0f,
                 1f,
