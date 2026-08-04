@@ -48,13 +48,13 @@ final class DefaultSceneDefinition implements SceneDefinition {
                         new SpriteLayoutRule(TextureCatalog.BLUE_BUTTON_TEXTURE_SLOT,
                                 FitMode.FIT_WIDTH,
                                 0.32f,
-                                1.0f,
-                                0.6f),
+                                1.2f,
+                                0.8f),
                         new SpriteLayoutRule(TextureCatalog.YELLOW_BUTTON_TEXTURE_SLOT,
                                 FitMode.FIT_WIDTH,
                                 0.32f,
-                                1.0f,
-                                0.6f)));
+                                1.2f,
+                                0.8f)));
     }
 
     @Override
@@ -113,7 +113,7 @@ final class DefaultSceneDefinition implements SceneDefinition {
                 SimpleWorldState.EntityState.ControlMode.AI,
                 TextureCatalog.SIMONFRAME_TEXTURE_SLOT,
                 0.0f,
-                -3.0f,
+                -1.2f,
                 1.0f,
                 0.0f,
                 0.0f,
@@ -141,11 +141,11 @@ final class DefaultSceneDefinition implements SceneDefinition {
     }
 
     private static SimpleWorldState.EntityState createBlueButtonEntity() {
-        return createButtonEntity(5, TextureCatalog.BLUE_BUTTON_TEXTURE_SLOT, 0.33f, -0.78f);
+        return createButtonEntity(5, TextureCatalog.BLUE_BUTTON_TEXTURE_SLOT, 0.33f, -1.9f);
     }
 
     private static SimpleWorldState.EntityState createYellowButtonEntity() {
-        return createButtonEntity(6, TextureCatalog.YELLOW_BUTTON_TEXTURE_SLOT, -0.30f, -0.78f);
+        return createButtonEntity(6, TextureCatalog.YELLOW_BUTTON_TEXTURE_SLOT, -0.30f, -1.9f);
     }
 
     private static SimpleWorldState.EntityState createButtonEntity(int entityId,
