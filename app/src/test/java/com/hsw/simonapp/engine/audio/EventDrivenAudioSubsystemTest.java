@@ -55,6 +55,21 @@ public class EventDrivenAudioSubsystemTest {
     }
 
     @Test
+    public void consumePendingEvents_doesNotThrottleButtonTonesByDefault() {
+        AudioEventQueue audioEventQueue = new AudioEventQueue();
+        List<AudioEvent> playedEvents = new ArrayList<>();
+        EventDrivenAudioSubsystem audioSubsystem = new EventDrivenAudioSubsystem(audioEventQueue,
+                event -> playedEvents.add(event));
+
+        audioEventQueue.publish(AudioEvent.buttonTone(1L, 3, 0));
+        audioSubsystem.consumePendingEvents();
+        audioEventQueue.publish(AudioEvent.buttonTone(2L, 3, 0));
+        audioSubsystem.consumePendingEvents();
+
+        assertEquals(2, playedEvents.size());
+    }
+
+    @Test
     public void consumePendingEvents_deduplicatesPerTickBeforeThrottle() {
         AudioEventQueue audioEventQueue = new AudioEventQueue();
         List<AudioEvent> playedEvents = new ArrayList<>();

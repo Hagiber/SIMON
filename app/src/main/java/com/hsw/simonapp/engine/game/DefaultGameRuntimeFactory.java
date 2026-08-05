@@ -28,7 +28,8 @@ public final class DefaultGameRuntimeFactory implements GameRuntimeFactory {
     public GameRuntime createRuntime(Context context) {
         Context nonNullContext = Objects.requireNonNull(context, "context");
         WorldInteractionController interactionController = new WorldInteractionController();
-        SimpleWorldUpdater simpleWorldUpdater = new SimpleWorldUpdater(interactionController);
+        SimpleWorldUpdater simpleWorldUpdater = new SimpleWorldUpdater(interactionController,
+                nonNullContext.getAudioEventQueue());
 
         InputReader inputReader = new QueuedInputReader(nonNullContext.getInputEventQueue());
         SceneDefinition sceneDefinition = nonNullContext.getSceneDefinition();

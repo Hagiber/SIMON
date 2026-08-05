@@ -8,6 +8,7 @@ import com.hsw.simonapp.engine.audio.AssetBackedBounceAudioPlayer;
 import com.hsw.simonapp.engine.audio.AudioEventQueue;
 import com.hsw.simonapp.engine.audio.AudioSubsystem;
 import com.hsw.simonapp.engine.audio.EventDrivenAudioSubsystem;
+import com.hsw.simonapp.engine.audio.GeneratedSimonButtonAudioPlayer;
 import com.hsw.simonapp.engine.game.DefaultGameDefinition;
 import com.hsw.simonapp.engine.game.GameDefinition;
 import com.hsw.simonapp.engine.game.GameRuntimeFactory;
@@ -159,7 +160,7 @@ final class EngineGameLoopRuntime {
         AudioEventQueue audioEventQueue = new AudioEventQueue();
         AudioSubsystem audioSubsystem = new EventDrivenAudioSubsystem(
                 audioEventQueue,
-                new AssetBackedBounceAudioPlayer(assetManager));
+                new GeneratedSimonButtonAudioPlayer(new AssetBackedBounceAudioPlayer(assetManager)));
         GameRuntimeFactory.Context runtimeContext = new GameRuntimeFactory.Context(inputEventQueue,
                 audioEventQueue,
                 audioSubsystem,

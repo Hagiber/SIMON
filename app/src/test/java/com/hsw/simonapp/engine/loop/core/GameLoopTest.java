@@ -4,9 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
-import com.hsw.simonapp.engine.audio.AudioEvent;
 import com.hsw.simonapp.engine.audio.AudioEventQueue;
-import com.hsw.simonapp.engine.audio.AudioEventType;
 import com.hsw.simonapp.engine.audio.AudioSubsystem;
 
 import org.junit.Test;
@@ -237,14 +235,12 @@ public class GameLoopTest {
     }
 
     @Test
-    public void runFrame_publishesCollisionAudioEventsBeforeRender() {
+    public void runFrame_doesNotPublishCollisionAudioEventsBeforeRender() {
         List<String> steps = new ArrayList<>();
         AudioEventQueue audioEventQueue = new AudioEventQueue();
         AudioSubsystem audioSubsystem = () -> {
             steps.add("5-audio");
-            List<AudioEvent> audioEvents = audioEventQueue.drain();
-            assertEquals(1, audioEvents.size());
-            assertEquals(AudioEventType.COLLISION_SOUND, audioEvents.get(0).getType());
+            assertEquals(0, audioEventQueue.drain().size());
         };
 
         GameLoop gameLoop = new GameLoop(

@@ -1,6 +1,8 @@
 package com.hsw.simonapp.engine.loop.defaults;
 
 import com.hsw.simonapp.engine.api.OrthoCamera;
+import com.hsw.simonapp.engine.audio.AudioEvent;
+import com.hsw.simonapp.engine.audio.AudioEventSink;
 import com.hsw.simonapp.engine.loop.core.FrameContext;
 import com.hsw.simonapp.engine.loop.core.GameplayDecider;
 import com.hsw.simonapp.engine.loop.core.InputApplier;
@@ -9,6 +11,7 @@ import com.hsw.simonapp.engine.loop.core.PhysicsIntegrator;
 import com.hsw.simonapp.engine.loop.core.WorldState;
 import com.hsw.simonapp.engine.api.TouchInputEvent;
 import com.hsw.simonapp.engine.input.TouchInputSnapshot;
+import com.hsw.simonapp.engine.scene.TextureCatalog;
 
 import java.util.Objects;
 
@@ -24,22 +27,30 @@ public final class SimpleWorldUpdater implements InputApplier, GameplayDecider, 
     private final PhysicsSystem physicsSystem;
     private final WorldBounds worldBounds;
     private final WorldInteractionController worldInteractionController;
+    private final AudioEventSink audioEventSink;
 
     public SimpleWorldUpdater() {
         this(new WorldInteractionController());
     }
 
     public SimpleWorldUpdater(WorldInteractionController worldInteractionController) {
-        this(WorldBounds.defaults(), worldInteractionController);
+        this(worldInteractionController, AudioEventSink.ignoring());
+    }
+
+    public SimpleWorldUpdater(WorldInteractionController worldInteractionController,
+                              AudioEventSink audioEventSink) {
+        this(WorldBounds.defaults(), worldInteractionController, audioEventSink);
     }
 
     private SimpleWorldUpdater(WorldBounds worldBounds,
-                               WorldInteractionController worldInteractionController) {
+                               WorldInteractionController worldInteractionController,
+                               AudioEventSink audioEventSink) {
         this(new TouchInputStateReducer(worldBounds),
                 new GameplaySystem(worldBounds),
                 new PhysicsSystem(worldBounds),
                 worldBounds,
-                worldInteractionController);
+                worldInteractionController,
+                audioEventSink);
     }
 
     SimpleWorldUpdater(TouchInputStateReducer touchInputStateReducer,
@@ -49,19 +60,22 @@ public final class SimpleWorldUpdater implements InputApplier, GameplayDecider, 
                 gameplaySystem,
                 physicsSystem,
                 WorldBounds.defaults(),
-                new WorldInteractionController());
+                new WorldInteractionController(),
+                AudioEventSink.ignoring());
     }
 
     private SimpleWorldUpdater(TouchInputStateReducer touchInputStateReducer,
                                GameplaySystem gameplaySystem,
                                PhysicsSystem physicsSystem,
                                WorldBounds worldBounds,
-                               WorldInteractionController worldInteractionController) {
+                               WorldInteractionController worldInteractionController,
+                               AudioEventSink audioEventSink) {
         this.touchInputStateReducer = touchInputStateReducer;
         this.gameplaySystem = gameplaySystem;
         this.physicsSystem = physicsSystem;
         this.worldBounds = worldBounds;
         this.worldInteractionController = worldInteractionController;
+        this.audioEventSink = Objects.requireNonNull(audioEventSink, "audioEventSink");
     }
 
     public void resizeViewport(int width, int height) {
@@ -80,7 +94,7 @@ public final class SimpleWorldUpdater implements InputApplier, GameplayDecider, 
         if (nextWorldState == null) {
             return currentWorldState;
         }
-        applyTouchSelections(inputSnapshot, nextWorldState);
+        applyTouchSelections(frameContext, inputSnapshot, nextWorldState);
         touchInputStateReducer.reduce(inputSnapshot);
         return nextWorldState;
     }
@@ -116,7 +130,9 @@ public final class SimpleWorldUpdater implements InputApplier, GameplayDecider, 
         return ((SimpleWorldState) worldState).copy();
     }
 
-    private void applyTouchSelections(InputSnapshot inputSnapshot, SimpleWorldState worldState) {
+    private void applyTouchSelections(FrameContext frameContext,
+                                      InputSnapshot inputSnapshot,
+                                      SimpleWorldState worldState) {
         if (!(inputSnapshot instanceof TouchInputSnapshot)) {
             return;
         }
@@ -124,12 +140,14 @@ public final class SimpleWorldUpdater implements InputApplier, GameplayDecider, 
         TouchInputSnapshot touchInputSnapshot = (TouchInputSnapshot) inputSnapshot;
         for (TouchInputEvent event : touchInputSnapshot.getEvents()) {
             if (event.getAction() == TouchInputEvent.Action.DOWN) {
-                selectTouchedEntity(event, worldState);
+                selectTouchedEntity(frameContext, event, worldState);
             }
         }
     }
 
-    private void selectTouchedEntity(TouchInputEvent event, SimpleWorldState worldState) {
+    private void selectTouchedEntity(FrameContext frameContext,
+                                     TouchInputEvent event,
+                                     SimpleWorldState worldState) {
         float touchX = touchInputStateReducer.toWorldX(event);
         float touchY = touchInputStateReducer.toWorldY(event);
         SimpleWorldState.EntityState selectedEntity = null;
@@ -150,6 +168,7 @@ public final class SimpleWorldUpdater implements InputApplier, GameplayDecider, 
                 case BUTTON_PRESS:
                     touchInputStateReducer.clearTouchTarget();
                     worldInteractionController.requestButtonPress(selectedEntity.getEntityId());
+                    publishButtonTone(frameContext, selectedEntity);
                     break;
                 case SELECT:
                 case NONE:
@@ -161,6 +180,18 @@ public final class SimpleWorldUpdater implements InputApplier, GameplayDecider, 
             touchInputStateReducer.clearTouchTarget();
             worldInteractionController.showWorldCoordinates(touchX, touchY);
         }
+    }
+
+    private void publishButtonTone(FrameContext frameContext, SimpleWorldState.EntityState selectedEntity) {
+        int textureSlot = selectedEntity.getTextureSlot();
+        if (!TextureCatalog.isButtonTextureSlot(textureSlot)) {
+            return;
+        }
+
+        int toneIndex = TextureCatalog.buttonColorIndexForSlot(textureSlot);
+        audioEventSink.publish(AudioEvent.buttonTone(frameContext.getFrameIndex(),
+                selectedEntity.getEntityId(),
+                toneIndex));
     }
 
     private static boolean isTouchInteractive(SimpleWorldState.EntityState entity) {

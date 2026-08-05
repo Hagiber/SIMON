@@ -8,8 +8,13 @@ public final class AudioEvent {
     private final long sourceTickIndex;
     private final String dedupeKey;
     private final String throttleKey;
+    private final int toneIndex;
 
-    private AudioEvent(AudioEventType type, long sourceTickIndex, String dedupeKey, String throttleKey) {
+    private AudioEvent(AudioEventType type,
+                       long sourceTickIndex,
+                       String dedupeKey,
+                       String throttleKey,
+                       int toneIndex) {
         if (sourceTickIndex < 0L) {
             throw new IllegalArgumentException("sourceTickIndex must be >= 0, got: " + sourceTickIndex);
         }
@@ -17,6 +22,7 @@ public final class AudioEvent {
         this.sourceTickIndex = sourceTickIndex;
         this.dedupeKey = requireNonEmpty(dedupeKey, "dedupeKey");
         this.throttleKey = requireNonEmpty(throttleKey, "throttleKey");
+        this.toneIndex = toneIndex;
     }
 
     public static AudioEvent collisionSound(long sourceTickIndex, int entityA, int entityB) {
@@ -26,7 +32,20 @@ public final class AudioEvent {
         return new AudioEvent(eventType,
                 sourceTickIndex,
                 eventType.getEventName() + ":" + firstEntity + ":" + secondEntity,
-                eventType.getEventName());
+                eventType.getEventName(),
+                -1);
+    }
+
+    public static AudioEvent buttonTone(long sourceTickIndex, int entityId, int toneIndex) {
+        if (toneIndex < 0) {
+            throw new IllegalArgumentException("toneIndex must be >= 0, got: " + toneIndex);
+        }
+        AudioEventType eventType = AudioEventType.BUTTON_TONE;
+        return new AudioEvent(eventType,
+                sourceTickIndex,
+                eventType.getEventName() + ":" + entityId,
+                eventType.getEventName() + ":" + toneIndex,
+                toneIndex);
     }
 
     public AudioEventType getType() {
@@ -45,6 +64,10 @@ public final class AudioEvent {
         return throttleKey;
     }
 
+    public int getToneIndex() {
+        return toneIndex;
+    }
+
     @Override
     public boolean equals(Object other) {
         if (this == other) {
@@ -55,6 +78,7 @@ public final class AudioEvent {
         }
         AudioEvent that = (AudioEvent) other;
         return sourceTickIndex == that.sourceTickIndex
+                && toneIndex == that.toneIndex
                 && type == that.type
                 && dedupeKey.equals(that.dedupeKey)
                 && throttleKey.equals(that.throttleKey);
@@ -62,7 +86,7 @@ public final class AudioEvent {
 
     @Override
     public int hashCode() {
-        return Objects.hash(type, sourceTickIndex, dedupeKey, throttleKey);
+        return Objects.hash(type, sourceTickIndex, dedupeKey, throttleKey, toneIndex);
     }
 
     @Override
@@ -72,6 +96,7 @@ public final class AudioEvent {
                 + ", sourceTickIndex=" + sourceTickIndex
                 + ", dedupeKey='" + dedupeKey + '\''
                 + ", throttleKey='" + throttleKey + '\''
+                + ", toneIndex=" + toneIndex
                 + '}';
     }
 

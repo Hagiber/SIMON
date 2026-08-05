@@ -34,27 +34,29 @@ final class DefaultSceneDefinition implements SceneDefinition {
         this.sceneLayout = new SceneLayout(TextureCatalog::textureDimensionsForSlot,
                 Arrays.asList(new SpriteLayoutRule(TextureCatalog.SIMONFRAME_TEXTURE_SLOT,
                                 FitMode.FIT_WIDTH,
-                                0.96f),
+                                0.96f,
+                                1.0f,
+                                0.6f),
                         new SpriteLayoutRule(TextureCatalog.RED_BUTTON_TEXTURE_SLOT,
                                 FitMode.FIT_WIDTH,
                                 0.32f,
                                 1.0f,
-                                0.6f),
+                                0.5f),
                         new SpriteLayoutRule(TextureCatalog.GREEN_BUTTON_TEXTURE_SLOT,
                                 FitMode.FIT_WIDTH,
                                 0.32f,
                                 1.0f,
-                                0.6f),
+                                0.5f),
                         new SpriteLayoutRule(TextureCatalog.BLUE_BUTTON_TEXTURE_SLOT,
                                 FitMode.FIT_WIDTH,
                                 0.32f,
-                                1.2f,
-                                0.8f),
+                                1.1f,
+                                0.6f),
                         new SpriteLayoutRule(TextureCatalog.YELLOW_BUTTON_TEXTURE_SLOT,
                                 FitMode.FIT_WIDTH,
                                 0.32f,
-                                1.2f,
-                                0.8f)));
+                                1.1f,
+                                0.6f)));
     }
 
     @Override
@@ -133,19 +135,19 @@ final class DefaultSceneDefinition implements SceneDefinition {
     }
 
     private static SimpleWorldState.EntityState createRedButtonEntity() {
-        return createButtonEntity(3, TextureCatalog.RED_BUTTON_TEXTURE_SLOT, 0.33f, -1.31f);
+        return createButtonEntity(3, TextureCatalog.RED_BUTTON_TEXTURE_SLOT, 0.33f, -0.96f);
     }
 
     private static SimpleWorldState.EntityState createGreenButtonEntity() {
-        return createButtonEntity(4, TextureCatalog.GREEN_BUTTON_TEXTURE_SLOT, -0.30f, -1.31f);
+        return createButtonEntity(4, TextureCatalog.GREEN_BUTTON_TEXTURE_SLOT, -0.30f, -0.96f);
     }
 
     private static SimpleWorldState.EntityState createBlueButtonEntity() {
-        return createButtonEntity(5, TextureCatalog.BLUE_BUTTON_TEXTURE_SLOT, 0.33f, -1.9f);
+        return createButtonEntity(5, TextureCatalog.BLUE_BUTTON_TEXTURE_SLOT, 0.35f, -1.2f);
     }
 
     private static SimpleWorldState.EntityState createYellowButtonEntity() {
-        return createButtonEntity(6, TextureCatalog.YELLOW_BUTTON_TEXTURE_SLOT, -0.30f, -1.9f);
+        return createButtonEntity(6, TextureCatalog.YELLOW_BUTTON_TEXTURE_SLOT, -0.34f, -1.2f);
     }
 
     private static SimpleWorldState.EntityState createButtonEntity(int entityId,

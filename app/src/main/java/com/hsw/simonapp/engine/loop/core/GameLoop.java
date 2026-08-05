@@ -1,6 +1,5 @@
 package com.hsw.simonapp.engine.loop.core;
 
-import com.hsw.simonapp.engine.audio.AudioEvent;
 import com.hsw.simonapp.engine.audio.AudioEventSink;
 import com.hsw.simonapp.engine.audio.AudioSubsystem;
 
@@ -78,7 +77,7 @@ public final class GameLoop {
                 worldUpdater,
                 collisionDetector,
                 collisionResolver,
-                collisionAudioEventEmitter(audioEventSink),
+                UpdateEventEmitter.ignoring(),
                 audioSubsystem,
                 frameRenderer,
                 FrameTimingSink.NO_OP,
@@ -99,7 +98,7 @@ public final class GameLoop {
                 worldUpdater,
                 collisionDetector,
                 collisionResolver,
-                collisionAudioEventEmitter(audioEventSink),
+                UpdateEventEmitter.ignoring(),
                 audioSubsystem,
                 frameRenderer,
                 frameTimingSink,
@@ -185,7 +184,7 @@ public final class GameLoop {
                 worldUpdater,
                 collisionDetector,
                 collisionResolver,
-                collisionAudioEventEmitter(audioEventSink),
+                UpdateEventEmitter.ignoring(),
                 audioSubsystem,
                 frameRenderer,
                 FrameTimingSink.NO_OP,
@@ -248,22 +247,6 @@ public final class GameLoop {
         collisionResolver.resolve(updateContext, nextWorldState, collisions);
         updateEventEmitter.emit(updateContext, nextWorldState, collisions);
         worldStateBuffer.advanceTo(nextWorldState);
-    }
-
-    private static UpdateEventEmitter collisionAudioEventEmitter(AudioEventSink audioEventSink) {
-        AudioEventSink nonNullAudioEventSink = Objects.requireNonNull(audioEventSink, "audioEventSink");
-        return (frameContext, currentWorldState, collisions) ->
-                publishCollisionAudioEvents(nonNullAudioEventSink, frameContext, collisions);
-    }
-
-    private static void publishCollisionAudioEvents(AudioEventSink audioEventSink,
-                                                    FrameContext updateContext,
-                                                    List<CollisionPair> collisions) {
-        for (CollisionPair collision : collisions) {
-            audioEventSink.publish(AudioEvent.collisionSound(updateContext.getFrameIndex(),
-                    collision.getEntityA(),
-                    collision.getEntityB()));
-        }
     }
 
     private float calculateInterpolationAlpha() {

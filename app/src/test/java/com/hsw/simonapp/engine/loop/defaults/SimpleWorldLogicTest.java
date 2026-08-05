@@ -8,12 +8,16 @@ import com.hsw.simonapp.engine.api.BlendMode;
 import com.hsw.simonapp.engine.api.ScissorRect;
 import com.hsw.simonapp.engine.api.TextureRegion;
 import com.hsw.simonapp.engine.api.TouchInputEvent;
+import com.hsw.simonapp.engine.audio.AudioEvent;
+import com.hsw.simonapp.engine.audio.AudioEventQueue;
+import com.hsw.simonapp.engine.audio.AudioEventType;
 import com.hsw.simonapp.engine.input.TouchInputSnapshot;
 import com.hsw.simonapp.engine.loop.core.CollisionPair;
 import com.hsw.simonapp.engine.loop.core.DeterministicWorldUpdater;
 import com.hsw.simonapp.engine.loop.core.FrameContext;
 import com.hsw.simonapp.engine.loop.core.InputSnapshot;
 import com.hsw.simonapp.engine.loop.core.NeutralInputSnapshot;
+import com.hsw.simonapp.engine.scene.TextureCatalog;
 
 import org.junit.Test;
 
@@ -166,6 +170,58 @@ public class SimpleWorldLogicTest {
         SimpleWorldState.EntityState entity = updatedWorldState.getEntities().get(0);
         assertEquals(Integer.valueOf(3), interactionController.getSelectedEntityId());
         assertEquals(1.0f, entity.getAnimationState(), 0.0001f);
+    }
+
+    @Test
+    public void update_publishesSimonToneForTouchedButton() {
+        AudioEventQueue audioEventQueue = new AudioEventQueue();
+        SimpleWorldUpdater simpleWorldUpdater = new SimpleWorldUpdater(new WorldInteractionController(),
+                audioEventQueue);
+        SimpleWorldState worldState = new SimpleWorldState(Collections.singletonList(
+                new SimpleWorldState.EntityState(5,
+                        0,
+                        SimpleWorldState.EntityState.ControlMode.AI,
+                        TextureCatalog.BLUE_BUTTON_TEXTURE_SLOT,
+                        0f,
+                        0f,
+                        1f,
+                        0f,
+                        0f,
+                        0f,
+                        0f,
+                        0f,
+                        -4.0f,
+                        0.2f,
+                        BlendMode.ALPHA,
+                        0,
+                        0,
+                        ScissorRect.disabled(),
+                        TextureRegion.full(),
+                        1.0f,
+                        1.0f,
+                        SimpleWorldState.EntityState.TouchInteraction.BUTTON_PRESS)
+        ));
+        TouchInputEvent touchDown = new TouchInputEvent(TouchInputEvent.Action.DOWN,
+                9,
+                50.0f,
+                50.0f,
+                100,
+                100,
+                1L);
+
+        updateSimpleWorld(simpleWorldUpdater,
+                worldState,
+                new FrameContext(7, 0.0f),
+                new TouchInputSnapshot(Collections.singletonList(touchDown)));
+
+        List<AudioEvent> audioEvents = audioEventQueue.drain();
+        assertEquals(1, audioEvents.size());
+        AudioEvent audioEvent = audioEvents.get(0);
+        assertEquals(AudioEventType.BUTTON_TONE, audioEvent.getType());
+        assertEquals(7L, audioEvent.getSourceTickIndex());
+        assertEquals("button_tone:5", audioEvent.getDedupeKey());
+        assertEquals(TextureCatalog.buttonColorIndexForSlot(TextureCatalog.BLUE_BUTTON_TEXTURE_SLOT),
+                audioEvent.getToneIndex());
     }
 
     @Test
