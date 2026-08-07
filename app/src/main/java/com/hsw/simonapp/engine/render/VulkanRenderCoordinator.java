@@ -142,6 +142,10 @@ public final class VulkanRenderCoordinator {
         return engineGameLoopRuntime.requestReverseSelectedEntityDirection();
     }
 
+    public void setButtonToneVolume(float volume) {
+        engineGameLoopRuntime.setButtonToneVolume(volume);
+    }
+
     private void recordCoordinatorFailure(CoordinatorErrorCode errorCode, String message) {
         lastCoordinatorError = CoordinatorResult.failure(errorCode, message);
         stopAndRelease();

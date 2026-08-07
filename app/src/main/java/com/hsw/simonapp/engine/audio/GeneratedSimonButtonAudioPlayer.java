@@ -14,7 +14,7 @@ public final class GeneratedSimonButtonAudioPlayer implements AudioPlayer {
     private static final int TONE_DURATION_MILLIS = 180;
     private static final int RELEASE_DELAY_MILLIS = 20;
     private static final int PLAYBACK_TIMEOUT_MARGIN_MILLIS = 1000;
-    private static final double MAX_VOLUME = 0.34d;
+    private static final double MAX_VOLUME = 0.99d;
     private static final double[] TONE_FREQUENCIES_HZ = {
             310.00d,
             415.30d,
@@ -24,6 +24,7 @@ public final class GeneratedSimonButtonAudioPlayer implements AudioPlayer {
 
     private final short[][] toneSamples;
     private final AudioPlayer fallbackAudioPlayer;
+    private volatile float volume = 1.0f;
 
     public GeneratedSimonButtonAudioPlayer(AudioPlayer fallbackAudioPlayer) {
         this(createDefaultToneSamples(), fallbackAudioPlayer);
@@ -49,9 +50,18 @@ public final class GeneratedSimonButtonAudioPlayer implements AudioPlayer {
         }
 
         short[] samples = toneSamples[toneIndex];
-        Thread audioThread = new Thread(() -> playToneSamples(samples), "SimonButtonToneAudio");
+        float playbackVolume = volume;
+        Thread audioThread = new Thread(() -> playToneSamples(samples, playbackVolume), "SimonButtonToneAudio");
         audioThread.setDaemon(true);
         audioThread.start();
+    }
+
+    public void setVolume(float volume) {
+        this.volume = clampVolume(volume);
+    }
+
+    public float getVolume() {
+        return volume;
     }
 
     static short[] createToneSamples(double frequencyHz) {
@@ -95,7 +105,14 @@ public final class GeneratedSimonButtonAudioPlayer implements AudioPlayer {
         return copy;
     }
 
-    private static void playToneSamples(short[] samples) {
+    static float clampVolume(float volume) {
+        if (!Float.isFinite(volume)) {
+            return 1.0f;
+        }
+        return Math.max(0.0f, Math.min(1.0f, volume));
+    }
+
+    private static void playToneSamples(short[] samples, float volume) {
         AudioTrack audioTrack = null;
         try {
             audioTrack = createAudioTrack(samples.length);
@@ -104,6 +121,7 @@ public final class GeneratedSimonButtonAudioPlayer implements AudioPlayer {
                 return;
             }
 
+            audioTrack.setVolume(clampVolume(volume));
             audioTrack.play();
             int writtenSamples = audioTrack.write(samples,
                     0,

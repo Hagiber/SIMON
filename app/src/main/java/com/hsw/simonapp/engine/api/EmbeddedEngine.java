@@ -94,6 +94,10 @@ public final class EmbeddedEngine {
         return renderCoordinator.reverseSelectedEntityDirection();
     }
 
+    public void setButtonToneVolume(float volume) {
+        renderCoordinator.setButtonToneVolume(volume);
+    }
+
     public void setSelectedEntityListener(Consumer<Integer> selectedEntityListener) {
         renderCoordinator.setSelectedEntityListener(selectedEntityListener);
     }

@@ -15,6 +15,14 @@ public class GeneratedSimonButtonAudioPlayerTest {
         assertTrue(hasAudibleSample(samples));
     }
 
+    @Test
+    public void clampVolume_limitsVolumeToPlayableRange() {
+        assertEquals(0.0f, GeneratedSimonButtonAudioPlayer.clampVolume(-0.2f), 0.0001f);
+        assertEquals(0.45f, GeneratedSimonButtonAudioPlayer.clampVolume(0.45f), 0.0001f);
+        assertEquals(1.0f, GeneratedSimonButtonAudioPlayer.clampVolume(1.4f), 0.0001f);
+        assertEquals(1.0f, GeneratedSimonButtonAudioPlayer.clampVolume(Float.NaN), 0.0001f);
+    }
+
     private static boolean hasAudibleSample(short[] samples) {
         for (short sample : samples) {
             if (Math.abs(sample) > 1_000) {

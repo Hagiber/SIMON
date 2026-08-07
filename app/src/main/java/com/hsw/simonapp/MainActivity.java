@@ -11,6 +11,7 @@ import android.view.WindowInsetsController;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -30,11 +31,14 @@ import java.util.Locale;
 public class MainActivity extends AppCompatActivity implements SurfaceHolder.Callback {
 
     private static final int PAUSED_SURFACE_REBUILD_FRAMES = 4;
+    private static final int BUTTON_VOLUME_SEEKBAR_MAX = 100;
+    private static final int DEFAULT_BUTTON_VOLUME_PROGRESS = 100;
 
     private SurfaceView surfaceView;
     private TextView statusText;
     private Button selectedObjectButton;
     private CheckBox runPauseCheckbox;
+    private SeekBar buttonVolumeSeekBar;
     private EmbeddedEngine engine;
     private SurfaceHolder activeSurfaceHolder;
     private int surfaceWidth;
@@ -77,6 +81,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         statusText = findViewById(R.id.status_text);
         selectedObjectButton = findViewById(R.id.button);
         runPauseCheckbox = findViewById(R.id.run_pause_checkbox);
+        buttonVolumeSeekBar = findViewById(R.id.button_volume_seekbar);
         selectedObjectButton.setText(selectedObjectButtonText(null));
         selectedObjectButton.setOnClickListener(view -> engine.reverseSelectedEntityDirection());
         runPauseCheckbox.setChecked(runRequested);
@@ -86,6 +91,23 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                 maybeInitializeAndStartEngine();
             } else if (engine.isInitialized()) {
                 engine.stop();
+            }
+        });
+        buttonVolumeSeekBar.setMax(BUTTON_VOLUME_SEEKBAR_MAX);
+        buttonVolumeSeekBar.setProgress(DEFAULT_BUTTON_VOLUME_PROGRESS);
+        engine.setButtonToneVolume(buttonVolumeProgressToVolume(buttonVolumeSeekBar.getProgress()));
+        buttonVolumeSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                engine.setButtonToneVolume(buttonVolumeProgressToVolume(progress));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
             }
         });
         findViewById(R.id.save_button).setOnClickListener(view -> saveGame());
@@ -249,5 +271,10 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
     private static String coordinateButtonText(float x, float y) {
         return String.format(Locale.US, "X: %.2f Y: %.2f", x, y);
+    }
+
+    private static float buttonVolumeProgressToVolume(int progress) {
+        return Math.max(0, Math.min(BUTTON_VOLUME_SEEKBAR_MAX, progress))
+                / (float) BUTTON_VOLUME_SEEKBAR_MAX;
     }
 }

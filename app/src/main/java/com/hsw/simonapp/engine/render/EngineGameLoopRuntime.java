@@ -35,6 +35,7 @@ final class EngineGameLoopRuntime {
     private final GameRuntimeFactory.ViewportAdapter viewportAdapter;
     private final GameRuntimeFactory.InteractionAdapter interactionAdapter;
     private final GameRuntimeFactory.StatePersistence statePersistence;
+    private final GeneratedSimonButtonAudioPlayer simonButtonAudioPlayer;
 
     EngineGameLoopRuntime(AssetManager assetManager,
                           FrameRenderer frameRenderer,
@@ -55,12 +56,16 @@ final class EngineGameLoopRuntime {
         SceneDefinition sceneDefinition = Objects.requireNonNull(
                 nonNullGameDefinition.createSceneDefinition(nonNullAssetManager),
                 "sceneDefinition");
+        GeneratedSimonButtonAudioPlayer simonButtonAudioPlayer =
+                createSimonButtonAudioPlayer(nonNullAssetManager);
+        this.simonButtonAudioPlayer = simonButtonAudioPlayer;
         GameRuntimeFactory.GameRuntime runtime = createRuntime(nonNullAssetManager,
                 Objects.requireNonNull(frameRenderer, "frameRenderer"),
                 Objects.requireNonNull(frameTimingSink, "frameTimingSink"),
                 nonNullGameDefinition,
                 sceneDefinition,
-                inputEventQueue);
+                inputEventQueue,
+                simonButtonAudioPlayer);
         this.gameLoop = runtime.getGameLoop();
         this.frameRenderer = Objects.requireNonNull(frameRenderer, "frameRenderer");
         this.sceneDefinition = sceneDefinition;
@@ -81,15 +86,19 @@ final class EngineGameLoopRuntime {
         SceneDefinition nonNullSceneDefinition = Objects.requireNonNull(sceneDefinition, "sceneDefinition");
 
         InputEventQueue inputEventQueue = new InputEventQueue();
+        GeneratedSimonButtonAudioPlayer simonButtonAudioPlayer =
+                createSimonButtonAudioPlayer(nonNullAssetManager);
         this.inputEventQueue = inputEventQueue;
         this.frameRenderer = nonNullFrameRenderer;
         this.sceneDefinition = nonNullSceneDefinition;
+        this.simonButtonAudioPlayer = simonButtonAudioPlayer;
         GameRuntimeFactory.GameRuntime runtime = createRuntime(nonNullAssetManager,
                 nonNullFrameRenderer,
                 nonNullFrameTimingSink,
                 nonNullGameDefinition,
                 nonNullSceneDefinition,
-                inputEventQueue);
+                inputEventQueue,
+                simonButtonAudioPlayer);
         this.gameLoop = runtime.getGameLoop();
         this.viewportAdapter = runtime.getViewportAdapter();
         this.interactionAdapter = runtime.getInteractionAdapter();
@@ -110,6 +119,10 @@ final class EngineGameLoopRuntime {
 
     boolean requestReverseSelectedEntityDirection() {
         return interactionAdapter.requestReverseSelectedEntityDirection();
+    }
+
+    void setButtonToneVolume(float volume) {
+        simonButtonAudioPlayer.setVolume(volume);
     }
 
     synchronized void runFrame(FrameContext frameContext) {
@@ -156,11 +169,12 @@ final class EngineGameLoopRuntime {
                                                                FrameTimingSink frameTimingSink,
                                                                GameDefinition gameDefinition,
                                                                SceneDefinition sceneDefinition,
-                                                               InputEventQueue inputEventQueue) {
+                                                               InputEventQueue inputEventQueue,
+                                                               GeneratedSimonButtonAudioPlayer simonButtonAudioPlayer) {
         AudioEventQueue audioEventQueue = new AudioEventQueue();
         AudioSubsystem audioSubsystem = new EventDrivenAudioSubsystem(
                 audioEventQueue,
-                new GeneratedSimonButtonAudioPlayer(new AssetBackedBounceAudioPlayer(assetManager)));
+                Objects.requireNonNull(simonButtonAudioPlayer, "simonButtonAudioPlayer"));
         GameRuntimeFactory.Context runtimeContext = new GameRuntimeFactory.Context(inputEventQueue,
                 audioEventQueue,
                 audioSubsystem,
@@ -170,5 +184,9 @@ final class EngineGameLoopRuntime {
         GameRuntimeFactory runtimeFactory = Objects.requireNonNull(gameDefinition.runtimeFactory(),
                 "runtimeFactory");
         return Objects.requireNonNull(runtimeFactory.createRuntime(runtimeContext), "gameRuntime");
+    }
+
+    private static GeneratedSimonButtonAudioPlayer createSimonButtonAudioPlayer(AssetManager assetManager) {
+        return new GeneratedSimonButtonAudioPlayer(new AssetBackedBounceAudioPlayer(assetManager));
     }
 }
