@@ -14,10 +14,15 @@ public final class WorldInteractionController {
     private final ConcurrentLinkedQueue<Integer> buttonPressRequests = new ConcurrentLinkedQueue<>();
 
     private volatile Consumer<Integer> selectedEntityListener;
+    private volatile Consumer<Integer> buttonPressListener;
     private volatile BiConsumer<Float, Float> worldCoordinateTouchListener;
 
     public void setSelectedEntityListener(Consumer<Integer> selectedEntityListener) {
         this.selectedEntityListener = selectedEntityListener;
+    }
+
+    public void setButtonPressListener(Consumer<Integer> buttonPressListener) {
+        this.buttonPressListener = buttonPressListener;
     }
 
     public void setWorldCoordinateTouchListener(BiConsumer<Float, Float> worldCoordinateTouchListener) {
@@ -59,6 +64,10 @@ public final class WorldInteractionController {
 
     public void requestButtonPress(int entityId) {
         buttonPressRequests.add(entityId);
+        Consumer<Integer> listener = buttonPressListener;
+        if (listener != null) {
+            listener.accept(entityId);
+        }
     }
 
     Integer pollReverseDirectionRequest() {

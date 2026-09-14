@@ -1,26 +1,32 @@
 package com.hsw.simonapp;
 
+import android.content.SharedPreferences;
 import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.FrameLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.hsw.simonapp.input.AndroidTouchInputAdapter;
+import com.hsw.simonapp.ui.GameSessionState;
 import com.hsw.simonapp.ui.LifecycleStateMachine;
 import com.hsw.simonapp.engine.api.EmbeddedEngine;
 import com.hsw.simonapp.engine.api.EmbeddedEngine.Result;
@@ -33,17 +39,27 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private static final int PAUSED_SURFACE_REBUILD_FRAMES = 4;
     private static final int BUTTON_VOLUME_SEEKBAR_MAX = 100;
     private static final int DEFAULT_BUTTON_VOLUME_PROGRESS = 100;
+    private static final float GAME_MENU_OVERLAY_HEIGHT_FRACTION = 0.46f;
+    private static final String GAME_STATS_PREFERENCES = "simon_game_stats";
+    private static final String PREF_HAS_LAST_RESULT = "has_last_result";
+    private static final String PREF_LAST_RESULT = "last_result";
+    private static final String PREF_RECORD = "record";
 
     private SurfaceView surfaceView;
+    private FrameLayout gameContainer;
     private TextView statusText;
+    private TextView lastResultText;
+    private TextView recordText;
     private Button selectedObjectButton;
     private CheckBox runPauseCheckbox;
     private SeekBar buttonVolumeSeekBar;
+    private View gameMenuOverlay;
     private EmbeddedEngine engine;
     private SurfaceHolder activeSurfaceHolder;
     private int surfaceWidth;
     private int surfaceHeight;
     private boolean runRequested = true;
+    private GameSessionState gameSessionState;
 
     private final LifecycleStateMachine lifecycleStateMachine = new LifecycleStateMachine();
 
@@ -77,11 +93,16 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         });
 
         engine = new EmbeddedEngine(getAssets());
+        gameSessionState = restoreGameSessionState();
+        gameContainer = findViewById(R.id.game_container);
         surfaceView = findViewById(R.id.vulkan_surface);
         statusText = findViewById(R.id.status_text);
+        lastResultText = findViewById(R.id.last_result_text);
+        recordText = findViewById(R.id.record_text);
         selectedObjectButton = findViewById(R.id.button);
         runPauseCheckbox = findViewById(R.id.run_pause_checkbox);
         buttonVolumeSeekBar = findViewById(R.id.button_volume_seekbar);
+        gameMenuOverlay = findViewById(R.id.game_menu_overlay);
         selectedObjectButton.setText(selectedObjectButtonText(null));
         selectedObjectButton.setOnClickListener(view -> engine.reverseSelectedEntityDirection());
         runPauseCheckbox.setChecked(runRequested);
@@ -112,13 +133,38 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         });
         findViewById(R.id.save_button).setOnClickListener(view -> saveGame());
         findViewById(R.id.load_button).setOnClickListener(view -> loadGame());
+        findViewById(R.id.start_game_button).setOnClickListener(view -> startGameRun());
+        findViewById(R.id.exit_game_button).setOnClickListener(view -> exitApplication());
         engine.setSelectedEntityListener(entityId ->
                 runOnUiThread(() -> selectedObjectButton.setText(selectedObjectButtonText(entityId))));
+        engine.setButtonPressListener(entityId ->
+                runOnUiThread(this::recordGameButtonPress));
         engine.setWorldCoordinateTouchListener((x, y) ->
                 runOnUiThread(() -> selectedObjectButton.setText(coordinateButtonText(x, y))));
         surfaceView.getHolder().addCallback(this);
-        surfaceView.setOnTouchListener(new AndroidTouchInputAdapter(engine::queueTouchInput));
+        surfaceView.setOnTouchListener(new AndroidTouchInputAdapter(touchInputEvent -> {
+            if (gameSessionState.isRunning()) {
+                engine.queueTouchInput(touchInputEvent);
+            }
+        }));
         surfaceView.setClickable(true);
+        gameContainer.addOnLayoutChangeListener((view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) ->
+                updateGameMenuOverlayHeight());
+        gameContainer.post(this::updateGameMenuOverlayHeight);
+        gameMenuOverlay.bringToFront();
+        updateGameMenuStats();
+        statusText.setText(R.string.game_menu_ready);
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (gameSessionState.isRunning()) {
+                    finishActiveGameRun();
+                    showGameMenuOverlay();
+                    return;
+                }
+                finish();
+            }
+        });
     }
 
     @Override
@@ -229,6 +275,89 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         if (loaded) {
             maybeInitializeAndStartEngine();
         }
+    }
+
+    private void startGameRun() {
+        gameSessionState.startRun();
+        gameMenuOverlay.setVisibility(View.GONE);
+        selectedObjectButton.setText(selectedObjectButtonText(null));
+        statusText.setText(getString(R.string.game_current_result, gameSessionState.getCurrentResult()));
+        if (!runRequested) {
+            runPauseCheckbox.setChecked(true);
+        } else {
+            maybeInitializeAndStartEngine();
+        }
+    }
+
+    private void finishActiveGameRun() {
+        if (!gameSessionState.finishRun()) {
+            return;
+        }
+        saveGameSessionState();
+        updateGameMenuStats();
+        statusText.setText(getString(R.string.game_finished, gameSessionState.getLastResult()));
+    }
+
+    private void recordGameButtonPress() {
+        if (!gameSessionState.recordButtonPress()) {
+            return;
+        }
+        statusText.setText(getString(R.string.game_current_result, gameSessionState.getCurrentResult()));
+    }
+
+    private void showGameMenuOverlay() {
+        updateGameMenuStats();
+        gameMenuOverlay.setVisibility(View.VISIBLE);
+        gameMenuOverlay.bringToFront();
+    }
+
+    private void exitApplication() {
+        finishActiveGameRun();
+        finish();
+    }
+
+    private void updateGameMenuStats() {
+        if (gameSessionState.hasLastResult()) {
+            lastResultText.setText(getString(R.string.game_menu_last_result,
+                    gameSessionState.getLastResult()));
+        } else {
+            lastResultText.setText(R.string.game_menu_no_last_result);
+        }
+        recordText.setText(getString(R.string.game_menu_record, gameSessionState.getRecord()));
+    }
+
+    private GameSessionState restoreGameSessionState() {
+        SharedPreferences preferences = getSharedPreferences(GAME_STATS_PREFERENCES, MODE_PRIVATE);
+        return new GameSessionState(preferences.getBoolean(PREF_HAS_LAST_RESULT, false),
+                preferences.getInt(PREF_LAST_RESULT, 0),
+                preferences.getInt(PREF_RECORD, 0));
+    }
+
+    private void saveGameSessionState() {
+        getSharedPreferences(GAME_STATS_PREFERENCES, MODE_PRIVATE)
+                .edit()
+                .putBoolean(PREF_HAS_LAST_RESULT, gameSessionState.hasLastResult())
+                .putInt(PREF_LAST_RESULT, gameSessionState.getLastResult())
+                .putInt(PREF_RECORD, gameSessionState.getRecord())
+                .apply();
+    }
+
+    private void updateGameMenuOverlayHeight() {
+        int containerHeight = gameContainer.getHeight();
+        if (containerHeight <= 0) {
+            return;
+        }
+        int minimumHeight = getResources().getDimensionPixelSize(R.dimen.game_menu_overlay_min_height);
+        int targetHeight = Math.max(minimumHeight,
+                Math.round(containerHeight * GAME_MENU_OVERLAY_HEIGHT_FRACTION));
+        targetHeight = Math.min(targetHeight, containerHeight);
+
+        ViewGroup.LayoutParams layoutParams = gameMenuOverlay.getLayoutParams();
+        if (layoutParams.height == targetHeight) {
+            return;
+        }
+        layoutParams.height = targetHeight;
+        gameMenuOverlay.setLayoutParams(layoutParams);
     }
 
     private File saveFile() {

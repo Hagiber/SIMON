@@ -105,6 +105,11 @@ public final class DefaultGameRuntimeFactory implements GameRuntimeFactory {
         }
 
         @Override
+        public void setButtonPressListener(Consumer<Integer> buttonPressListener) {
+            interactionController.setButtonPressListener(buttonPressListener);
+        }
+
+        @Override
         public void setWorldCoordinateTouchListener(BiConsumer<Float, Float> worldCoordinateTouchListener) {
             interactionController.setWorldCoordinateTouchListener(worldCoordinateTouchListener);
         }

@@ -134,6 +134,10 @@ public final class VulkanRenderCoordinator {
         engineGameLoopRuntime.setSelectedEntityListener(selectedEntityListener);
     }
 
+    public void setButtonPressListener(Consumer<Integer> buttonPressListener) {
+        engineGameLoopRuntime.setButtonPressListener(buttonPressListener);
+    }
+
     public void setWorldCoordinateTouchListener(BiConsumer<Float, Float> worldCoordinateTouchListener) {
         engineGameLoopRuntime.setWorldCoordinateTouchListener(worldCoordinateTouchListener);
     }

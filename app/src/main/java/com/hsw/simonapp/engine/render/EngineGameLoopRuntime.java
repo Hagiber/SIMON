@@ -113,6 +113,10 @@ final class EngineGameLoopRuntime {
         interactionAdapter.setSelectedEntityListener(selectedEntityListener);
     }
 
+    void setButtonPressListener(Consumer<Integer> buttonPressListener) {
+        interactionAdapter.setButtonPressListener(buttonPressListener);
+    }
+
     void setWorldCoordinateTouchListener(BiConsumer<Float, Float> worldCoordinateTouchListener) {
         interactionAdapter.setWorldCoordinateTouchListener(worldCoordinateTouchListener);
     }

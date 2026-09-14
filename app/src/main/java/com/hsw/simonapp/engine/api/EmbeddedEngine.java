@@ -102,6 +102,10 @@ public final class EmbeddedEngine {
         renderCoordinator.setSelectedEntityListener(selectedEntityListener);
     }
 
+    public void setButtonPressListener(Consumer<Integer> buttonPressListener) {
+        renderCoordinator.setButtonPressListener(buttonPressListener);
+    }
+
     public void setWorldCoordinateTouchListener(BiConsumer<Float, Float> worldCoordinateTouchListener) {
         renderCoordinator.setWorldCoordinateTouchListener(worldCoordinateTouchListener);
     }

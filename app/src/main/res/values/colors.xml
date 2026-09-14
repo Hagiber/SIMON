@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="ad_container_background">#87CEFA</color>
+    <color name="game_menu_overlay_background">#E6101620</color>
+    <color name="game_menu_overlay_text">#FFFFFFFF</color>
 </resources>

@@ -225,6 +225,52 @@ public class SimpleWorldLogicTest {
     }
 
     @Test
+    public void update_notifiesButtonPressListenerForTouchedButton() {
+        WorldInteractionController interactionController = new WorldInteractionController();
+        int[] pressedEntityId = new int[]{-1};
+        interactionController.setButtonPressListener(entityId -> pressedEntityId[0] = entityId);
+        SimpleWorldUpdater simpleWorldUpdater = new SimpleWorldUpdater(interactionController);
+        SimpleWorldState worldState = new SimpleWorldState(Collections.singletonList(
+                new SimpleWorldState.EntityState(6,
+                        0,
+                        SimpleWorldState.EntityState.ControlMode.AI,
+                        TextureCatalog.YELLOW_BUTTON_TEXTURE_SLOT,
+                        0f,
+                        0f,
+                        1f,
+                        0f,
+                        0f,
+                        0f,
+                        0f,
+                        0f,
+                        -4.0f,
+                        0.2f,
+                        BlendMode.ALPHA,
+                        0,
+                        0,
+                        ScissorRect.disabled(),
+                        TextureRegion.full(),
+                        1.0f,
+                        1.0f,
+                        SimpleWorldState.EntityState.TouchInteraction.BUTTON_PRESS)
+        ));
+        TouchInputEvent touchDown = new TouchInputEvent(TouchInputEvent.Action.DOWN,
+                9,
+                50.0f,
+                50.0f,
+                100,
+                100,
+                1L);
+
+        updateSimpleWorld(simpleWorldUpdater,
+                worldState,
+                new FrameContext(7, 0.0f),
+                new TouchInputSnapshot(Collections.singletonList(touchDown)));
+
+        assertEquals(6, pressedEntityId[0]);
+    }
+
+    @Test
     public void update_countsDownButtonPressAnimationUntilIdle() {
         SimpleWorldState worldState = new SimpleWorldState(Arrays.asList(
                 new SimpleWorldState.EntityState(3,

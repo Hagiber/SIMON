@@ -124,6 +124,9 @@ public interface GameRuntimeFactory {
     interface InteractionAdapter {
         void setSelectedEntityListener(Consumer<Integer> selectedEntityListener);
 
+        default void setButtonPressListener(Consumer<Integer> buttonPressListener) {
+        }
+
         void setWorldCoordinateTouchListener(BiConsumer<Float, Float> worldCoordinateTouchListener);
 
         boolean requestReverseSelectedEntityDirection();
