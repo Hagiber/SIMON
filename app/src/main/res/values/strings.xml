@@ -14,6 +14,7 @@
     <string name="game_menu_last_result">Legutobbi menet: %1$d</string>
     <string name="game_menu_record">Rekord: %1$d</string>
     <string name="game_start_button_label">START</string>
+    <string name="game_continue_button_label">FOLYTATÁS</string>
     <string name="game_exit_button_label">KILEPES</string>
     <string name="game_current_result">Menet: %1$d</string>
     <string name="game_menu_ready">Nyomj START-ot</string>

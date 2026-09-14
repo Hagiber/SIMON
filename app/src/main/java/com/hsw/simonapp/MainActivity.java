@@ -49,6 +49,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private TextView lastResultText;
     private TextView recordText;
     private Button selectedObjectButton;
+    private Button gameMenuPrimaryButton;
     private SeekBar buttonVolumeSeekBar;
     private View gameMenuOverlay;
     private EmbeddedEngine engine;
@@ -96,6 +97,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         lastResultText = findViewById(R.id.last_result_text);
         recordText = findViewById(R.id.record_text);
         selectedObjectButton = findViewById(R.id.button);
+        gameMenuPrimaryButton = findViewById(R.id.start_game_button);
         buttonVolumeSeekBar = findViewById(R.id.button_volume_seekbar);
         gameMenuOverlay = findViewById(R.id.game_menu_overlay);
         selectedObjectButton.setText(selectedObjectButtonText(null));
@@ -119,7 +121,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         });
         findViewById(R.id.save_button).setOnClickListener(view -> saveGame());
         findViewById(R.id.load_button).setOnClickListener(view -> loadGame());
-        findViewById(R.id.start_game_button).setOnClickListener(view -> startGameRun());
+        gameMenuPrimaryButton.setOnClickListener(view -> handleGameMenuPrimaryAction());
         findViewById(R.id.exit_game_button).setOnClickListener(view -> exitApplication());
         engine.setSelectedEntityListener(entityId ->
                 runOnUiThread(() -> selectedObjectButton.setText(selectedObjectButtonText(entityId))));
@@ -129,7 +131,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                 runOnUiThread(() -> selectedObjectButton.setText(coordinateButtonText(x, y))));
         surfaceView.getHolder().addCallback(this);
         surfaceView.setOnTouchListener(new AndroidTouchInputAdapter(touchInputEvent -> {
-            if (gameSessionState.isRunning()) {
+            if (gameSessionState.isRunning() && !isGameMenuOverlayVisible()) {
                 engine.queueTouchInput(touchInputEvent);
             }
         }));
@@ -144,7 +146,6 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
             @Override
             public void handleOnBackPressed() {
                 if (gameSessionState.isRunning()) {
-                    finishActiveGameRun();
                     showGameMenuOverlay();
                     return;
                 }
@@ -236,6 +237,9 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         if (!lifecycleStateMachine.shouldRender() || !engine.isInitialized()) {
             return;
         }
+        if (gameSessionState != null && gameSessionState.isRunning() && isGameMenuOverlayVisible()) {
+            return;
+        }
         engine.start();
     }
 
@@ -259,10 +263,24 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         }
     }
 
+    private void handleGameMenuPrimaryAction() {
+        if (gameSessionState.isRunning()) {
+            continueActiveGameRun();
+        } else {
+            startGameRun();
+        }
+    }
+
     private void startGameRun() {
         gameSessionState.startRun();
-        gameMenuOverlay.setVisibility(View.GONE);
+        hideGameMenuOverlay();
         selectedObjectButton.setText(selectedObjectButtonText(null));
+        statusText.setText(getString(R.string.game_current_result, gameSessionState.getCurrentResult()));
+        maybeInitializeAndStartEngine();
+    }
+
+    private void continueActiveGameRun() {
+        hideGameMenuOverlay();
         statusText.setText(getString(R.string.game_current_result, gameSessionState.getCurrentResult()));
         maybeInitializeAndStartEngine();
     }
@@ -285,8 +303,28 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
     private void showGameMenuOverlay() {
         updateGameMenuStats();
+        updateGameMenuPrimaryButton();
         gameMenuOverlay.setVisibility(View.VISIBLE);
         gameMenuOverlay.bringToFront();
+        if (gameSessionState.isRunning() && engine.isInitialized()) {
+            engine.stop();
+        }
+    }
+
+    private void hideGameMenuOverlay() {
+        gameMenuOverlay.setVisibility(View.GONE);
+    }
+
+    private boolean isGameMenuOverlayVisible() {
+        return gameMenuOverlay != null && gameMenuOverlay.getVisibility() == View.VISIBLE;
+    }
+
+    private void updateGameMenuPrimaryButton() {
+        if (gameSessionState.isRunning()) {
+            gameMenuPrimaryButton.setText(R.string.game_continue_button_label);
+        } else {
+            gameMenuPrimaryButton.setText(R.string.game_start_button_label);
+        }
     }
 
     private void exitApplication() {
