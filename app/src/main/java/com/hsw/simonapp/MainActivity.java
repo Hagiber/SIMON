@@ -13,7 +13,6 @@ import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.FrameLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -36,7 +35,6 @@ import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity implements SurfaceHolder.Callback {
 
-    private static final int PAUSED_SURFACE_REBUILD_FRAMES = 4;
     private static final int BUTTON_VOLUME_SEEKBAR_MAX = 100;
     private static final int DEFAULT_BUTTON_VOLUME_PROGRESS = 100;
     private static final float GAME_MENU_OVERLAY_HEIGHT_FRACTION = 0.46f;
@@ -51,14 +49,12 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private TextView lastResultText;
     private TextView recordText;
     private Button selectedObjectButton;
-    private CheckBox runPauseCheckbox;
     private SeekBar buttonVolumeSeekBar;
     private View gameMenuOverlay;
     private EmbeddedEngine engine;
     private SurfaceHolder activeSurfaceHolder;
     private int surfaceWidth;
     private int surfaceHeight;
-    private boolean runRequested = true;
     private GameSessionState gameSessionState;
 
     private final LifecycleStateMachine lifecycleStateMachine = new LifecycleStateMachine();
@@ -100,20 +96,10 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         lastResultText = findViewById(R.id.last_result_text);
         recordText = findViewById(R.id.record_text);
         selectedObjectButton = findViewById(R.id.button);
-        runPauseCheckbox = findViewById(R.id.run_pause_checkbox);
         buttonVolumeSeekBar = findViewById(R.id.button_volume_seekbar);
         gameMenuOverlay = findViewById(R.id.game_menu_overlay);
         selectedObjectButton.setText(selectedObjectButtonText(null));
         selectedObjectButton.setOnClickListener(view -> engine.reverseSelectedEntityDirection());
-        runPauseCheckbox.setChecked(runRequested);
-        runPauseCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            runRequested = isChecked;
-            if (isChecked) {
-                maybeInitializeAndStartEngine();
-            } else if (engine.isInitialized()) {
-                engine.stop();
-            }
-        });
         buttonVolumeSeekBar.setMax(BUTTON_VOLUME_SEEKBAR_MAX);
         buttonVolumeSeekBar.setProgress(DEFAULT_BUTTON_VOLUME_PROGRESS);
         engine.setButtonToneVolume(buttonVolumeProgressToVolume(buttonVolumeSeekBar.getProgress()));
@@ -250,11 +236,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         if (!lifecycleStateMachine.shouldRender() || !engine.isInitialized()) {
             return;
         }
-        if (runRequested) {
-            engine.start();
-        } else {
-            engine.renderCurrentFrames(PAUSED_SURFACE_REBUILD_FRAMES);
-        }
+        engine.start();
     }
 
     private void stopAndReleaseRenderer() {
@@ -282,11 +264,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         gameMenuOverlay.setVisibility(View.GONE);
         selectedObjectButton.setText(selectedObjectButtonText(null));
         statusText.setText(getString(R.string.game_current_result, gameSessionState.getCurrentResult()));
-        if (!runRequested) {
-            runPauseCheckbox.setChecked(true);
-        } else {
-            maybeInitializeAndStartEngine();
-        }
+        maybeInitializeAndStartEngine();
     }
 
     private void finishActiveGameRun() {

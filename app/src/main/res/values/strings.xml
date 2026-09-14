@@ -2,7 +2,6 @@
     <string name="app_name">SIMON</string>
     <string name="vulkan_initializing">Vulkan inicializálás...</string>
     <string name="vulkan_failed">Vulkan hiba: %1$s</string>
-    <string name="run_pause_checkbox">RUN</string>
     <string name="save_button_label">SAVE</string>
     <string name="load_button_label">LOAD</string>
     <string name="save_success">Save OK</string>
