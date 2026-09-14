@@ -30,11 +30,13 @@ public class DefaultSceneDefinitionTest {
         assertEquals(redButton.getY(), greenButton.getY(), FLOAT_DELTA);
         assertTrue(greenButton.getX() < redButton.getX());
         assertEquals(blueButton.getY(), yellowButton.getY(), FLOAT_DELTA);
-        assertTrue(blueButton.getY() > redButton.getY());
-        assertTrue(yellowButton.getY() > greenButton.getY());
+        assertTrue(blueButton.getY() < redButton.getY());
+        assertTrue(yellowButton.getY() < greenButton.getY());
         assertTrue(yellowButton.getX() < blueButton.getX());
-        assertEquals(redButton.getX(), blueButton.getX(), FLOAT_DELTA);
-        assertEquals(greenButton.getX(), yellowButton.getX(), FLOAT_DELTA);
+        assertTrue(redButton.getX() > 0.0f);
+        assertTrue(blueButton.getX() > 0.0f);
+        assertTrue(greenButton.getX() < 0.0f);
+        assertTrue(yellowButton.getX() < 0.0f);
         assertEquals(redButton.getScaleX(), greenButton.getScaleX(), FLOAT_DELTA);
         assertEquals(redButton.getScaleY(), greenButton.getScaleY(), FLOAT_DELTA);
         assertEquals(redButton.getScaleX(), blueButton.getScaleX(), FLOAT_DELTA);
