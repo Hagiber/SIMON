@@ -5,7 +5,6 @@ import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -25,6 +24,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.hsw.simonapp.input.AndroidTouchInputAdapter;
+import com.hsw.simonapp.input.GameSurfaceView;
 import com.hsw.simonapp.ui.GameSessionState;
 import com.hsw.simonapp.ui.LifecycleStateMachine;
 import com.hsw.simonapp.engine.api.EmbeddedEngine;
@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private static final String PREF_LAST_RESULT = "last_result";
     private static final String PREF_RECORD = "record";
 
-    private SurfaceView surfaceView;
+    private GameSurfaceView surfaceView;
     private FrameLayout gameContainer;
     private TextView statusText;
     private TextView lastResultText;

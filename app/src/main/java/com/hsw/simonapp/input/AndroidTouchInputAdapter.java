@@ -43,6 +43,14 @@ public final class AndroidTouchInputAdapter implements View.OnTouchListener {
                 }
                 return true;
             case MotionEvent.ACTION_UP:
+                pushPointerEvent(motionEvent,
+                        motionEvent.getActionIndex(),
+                        TouchInputEvent.Action.UP,
+                        surfaceWidth,
+                        surfaceHeight,
+                        eventTimeMillis);
+                view.performClick();
+                return true;
             case MotionEvent.ACTION_POINTER_UP:
                 pushPointerEvent(motionEvent,
                         motionEvent.getActionIndex(),
