@@ -1,22 +1,16 @@
 <resources>
     <string name="app_name">SIMON</string>
-    <string name="vulkan_initializing">Vulkan inicializálás...</string>
-    <string name="vulkan_failed">Vulkan hiba: %1$s</string>
-    <string name="save_button_label">SAVE</string>
-    <string name="load_button_label">LOAD</string>
-    <string name="save_success">Save OK</string>
-    <string name="save_failed">Save failed</string>
-    <string name="load_success">Load OK</string>
-    <string name="load_failed">Load failed</string>
+    <string name="vulkan_initializing">Initializing Vulkan...</string>
+    <string name="vulkan_failed">Vulkan error: %1$s</string>
     <string name="button_volume_seekbar_description">Button volume</string>
     <string name="game_menu_title">SIMON</string>
-    <string name="game_menu_no_last_result">Legutobbi menet: nincs meg</string>
-    <string name="game_menu_last_result">Legutobbi menet: %1$d</string>
-    <string name="game_menu_record">Rekord: %1$d</string>
+    <string name="game_menu_no_last_result">Last run: none</string>
+    <string name="game_menu_last_result">Last run: %1$d</string>
+    <string name="game_menu_record">Record: %1$d</string>
     <string name="game_start_button_label">START</string>
-    <string name="game_continue_button_label">FOLYTATÁS</string>
-    <string name="game_exit_button_label">KILEPES</string>
-    <string name="game_current_result">Menet: %1$d</string>
-    <string name="game_menu_ready">Nyomj START-ot</string>
-    <string name="game_finished">Menet vege: %1$d</string>
+    <string name="game_continue_button_label">CONTINUE</string>
+    <string name="game_exit_button_label">EXIT</string>
+    <string name="game_current_result">Current run: %1$d</string>
+    <string name="game_menu_ready">Press START</string>
+    <string name="game_finished">Run finished: %1$d</string>
 </resources>

@@ -30,7 +30,6 @@ import com.hsw.simonapp.ui.LifecycleStateMachine;
 import com.hsw.simonapp.engine.api.EmbeddedEngine;
 import com.hsw.simonapp.engine.api.EmbeddedEngine.Result;
 
-import java.io.File;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity implements SurfaceHolder.Callback {
@@ -119,8 +118,6 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
             public void onStopTrackingTouch(SeekBar seekBar) {
             }
         });
-        findViewById(R.id.save_button).setOnClickListener(view -> saveGame());
-        findViewById(R.id.load_button).setOnClickListener(view -> loadGame());
         gameMenuPrimaryButton.setOnClickListener(view -> handleGameMenuPrimaryAction());
         findViewById(R.id.exit_game_button).setOnClickListener(view -> exitApplication());
         engine.setSelectedEntityListener(entityId ->
@@ -250,19 +247,6 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         lifecycleStateMachine.onRendererInitialized(false);
     }
 
-    private void saveGame() {
-        boolean saved = engine.saveGame(saveFile());
-        statusText.setText(saved ? R.string.save_success : R.string.save_failed);
-    }
-
-    private void loadGame() {
-        boolean loaded = engine.loadGame(saveFile());
-        statusText.setText(loaded ? R.string.load_success : R.string.load_failed);
-        if (loaded) {
-            maybeInitializeAndStartEngine();
-        }
-    }
-
     private void handleGameMenuPrimaryAction() {
         if (gameSessionState.isRunning()) {
             continueActiveGameRun();
@@ -374,10 +358,6 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         }
         layoutParams.height = targetHeight;
         gameMenuOverlay.setLayoutParams(layoutParams);
-    }
-
-    private File saveFile() {
-        return new File(new File(getFilesDir(), "saves"), "slot_1.json");
     }
 
     private void rememberSurface(SurfaceHolder holder) {
