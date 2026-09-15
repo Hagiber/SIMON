@@ -38,6 +38,8 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private static final int DEFAULT_BUTTON_VOLUME_PROGRESS = 100;
     private static final float GAME_MENU_OVERLAY_HEIGHT_FRACTION = 0.46f;
     private static final String GAME_STATS_PREFERENCES = "simon_game_stats";
+    private static final String PREF_RUNNING = "running";
+    private static final String PREF_CURRENT_RESULT = "current_result";
     private static final String PREF_HAS_LAST_RESULT = "has_last_result";
     private static final String PREF_LAST_RESULT = "last_result";
     private static final String PREF_RECORD = "record";
@@ -137,8 +139,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                 updateGameMenuOverlayHeight());
         gameContainer.post(this::updateGameMenuOverlayHeight);
         gameMenuOverlay.bringToFront();
-        updateGameMenuStats();
-        statusText.setText(R.string.game_menu_ready);
+        initializeGameMenuState();
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
@@ -160,6 +161,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
     @Override
     protected void onPause() {
+        saveGameSessionState(true);
         lifecycleStateMachine.onPaused();
         stopAndReleaseRenderer();
         super.onPause();
@@ -255,8 +257,19 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         }
     }
 
+    private void initializeGameMenuState() {
+        updateGameMenuStats();
+        updateGameMenuPrimaryButton();
+        if (gameSessionState.isRunning()) {
+            statusText.setText(getString(R.string.game_current_result, gameSessionState.getCurrentResult()));
+        } else {
+            statusText.setText(R.string.game_menu_ready);
+        }
+    }
+
     private void startGameRun() {
         gameSessionState.startRun();
+        saveGameSessionState();
         hideGameMenuOverlay();
         selectedObjectButton.setText(selectedObjectButtonText(null));
         statusText.setText(getString(R.string.game_current_result, gameSessionState.getCurrentResult()));
@@ -282,10 +295,12 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         if (!gameSessionState.recordButtonPress()) {
             return;
         }
+        saveGameSessionState();
         statusText.setText(getString(R.string.game_current_result, gameSessionState.getCurrentResult()));
     }
 
     private void showGameMenuOverlay() {
+        saveGameSessionState();
         updateGameMenuStats();
         updateGameMenuPrimaryButton();
         gameMenuOverlay.setVisibility(View.VISIBLE);
@@ -328,18 +343,34 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
     private GameSessionState restoreGameSessionState() {
         SharedPreferences preferences = getSharedPreferences(GAME_STATS_PREFERENCES, MODE_PRIVATE);
-        return new GameSessionState(preferences.getBoolean(PREF_HAS_LAST_RESULT, false),
+        return new GameSessionState(preferences.getBoolean(PREF_RUNNING, false),
+                preferences.getInt(PREF_CURRENT_RESULT, 0),
+                preferences.getBoolean(PREF_HAS_LAST_RESULT, false),
                 preferences.getInt(PREF_LAST_RESULT, 0),
                 preferences.getInt(PREF_RECORD, 0));
     }
 
     private void saveGameSessionState() {
-        getSharedPreferences(GAME_STATS_PREFERENCES, MODE_PRIVATE)
+        saveGameSessionState(false);
+    }
+
+    private void saveGameSessionState(boolean synchronous) {
+        if (gameSessionState == null) {
+            return;
+        }
+
+        SharedPreferences.Editor editor = getSharedPreferences(GAME_STATS_PREFERENCES, MODE_PRIVATE)
                 .edit()
+                .putBoolean(PREF_RUNNING, gameSessionState.isRunning())
+                .putInt(PREF_CURRENT_RESULT, gameSessionState.getCurrentResult())
                 .putBoolean(PREF_HAS_LAST_RESULT, gameSessionState.hasLastResult())
                 .putInt(PREF_LAST_RESULT, gameSessionState.getLastResult())
-                .putInt(PREF_RECORD, gameSessionState.getRecord())
-                .apply();
+                .putInt(PREF_RECORD, gameSessionState.getRecord());
+        if (synchronous) {
+            editor.commit();
+        } else {
+            editor.apply();
+        }
     }
 
     private void updateGameMenuOverlayHeight() {

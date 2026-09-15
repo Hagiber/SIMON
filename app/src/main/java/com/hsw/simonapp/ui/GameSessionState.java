@@ -9,6 +9,13 @@ public final class GameSessionState {
     private int currentResult;
 
     public GameSessionState(boolean hasLastResult, int lastResult, int record) {
+        this(false, 0, hasLastResult, lastResult, record);
+    }
+
+    public GameSessionState(boolean running, int currentResult,
+            boolean hasLastResult, int lastResult, int record) {
+        this.running = running;
+        this.currentResult = running ? Math.max(0, currentResult) : 0;
         this.hasLastResult = hasLastResult;
         this.lastResult = Math.max(0, lastResult);
         this.record = Math.max(0, record);
