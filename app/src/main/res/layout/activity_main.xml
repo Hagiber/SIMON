@@ -10,10 +10,9 @@
     <FrameLayout
         android:id="@+id/ad_container"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="@dimen/ad_container_reserved_height"
         android:background="@color/ad_container_background"
-        android:importantForAccessibility="no"
-        android:minHeight="@dimen/ad_container_min_height" />
+        android:importantForAccessibility="no" />
 
     <FrameLayout
         android:id="@+id/game_container"

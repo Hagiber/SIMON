@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.DisplayMetrics;
+import android.view.Gravity;
 import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.ViewGroup;
@@ -385,11 +386,16 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
         AdView adView = new AdView(this);
         adView.setAdUnitId(getString(R.string.admob_banner_ad_unit_id));
-        adView.setAdSize(createAdaptiveBannerSize());
+        AdSize adSize = createAdaptiveBannerSize();
+        adView.setAdSize(adSize);
         bannerAdView = adView;
 
         adContainer.removeAllViews();
-        adContainer.addView(adView);
+        FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                adSize.getHeightInPixels(this),
+                Gravity.CENTER);
+        adContainer.addView(adView, layoutParams);
         adView.loadAd(new AdRequest.Builder().build());
     }
 
@@ -400,7 +406,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
             adWidthPixels = displayMetrics.widthPixels;
         }
         int adWidth = (int) (adWidthPixels / displayMetrics.density);
-        return AdSize.getLargeAnchoredAdaptiveBannerAdSize(this, adWidth);
+        return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this, adWidth);
     }
 
     private void destroyBannerAd() {
