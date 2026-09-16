@@ -2,6 +2,7 @@
     <string name="app_name">SIMON</string>
     <string name="vulkan_initializing">Initializing Vulkan...</string>
     <string name="vulkan_failed">Vulkan error: %1$s</string>
+    <string name="button_volume_label">Volume:</string>
     <string name="button_volume_seekbar_description">Button volume</string>
     <string name="game_menu_title">SIMON</string>
     <string name="game_menu_no_last_result">Last run: none</string>
