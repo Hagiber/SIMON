@@ -7,10 +7,7 @@ import com.hsw.simonapp.engine.input.InputEventQueue;
 import com.hsw.simonapp.engine.loop.core.FrameRenderer;
 import com.hsw.simonapp.engine.loop.core.FrameTimingSink;
 import com.hsw.simonapp.engine.loop.core.GameLoop;
-import com.hsw.simonapp.engine.loop.core.WorldState;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -70,25 +67,13 @@ public interface GameRuntimeFactory {
         private final GameLoop gameLoop;
         private final ViewportAdapter viewportAdapter;
         private final InteractionAdapter interactionAdapter;
-        private final StatePersistence statePersistence;
 
         public GameRuntime(GameLoop gameLoop,
                            ViewportAdapter viewportAdapter,
                            InteractionAdapter interactionAdapter) {
-            this(gameLoop,
-                    viewportAdapter,
-                    interactionAdapter,
-                    StatePersistence.unsupported());
-        }
-
-        public GameRuntime(GameLoop gameLoop,
-                           ViewportAdapter viewportAdapter,
-                           InteractionAdapter interactionAdapter,
-                           StatePersistence statePersistence) {
             this.gameLoop = Objects.requireNonNull(gameLoop, "gameLoop");
             this.viewportAdapter = Objects.requireNonNull(viewportAdapter, "viewportAdapter");
             this.interactionAdapter = Objects.requireNonNull(interactionAdapter, "interactionAdapter");
-            this.statePersistence = Objects.requireNonNull(statePersistence, "statePersistence");
         }
 
         public GameLoop getGameLoop() {
@@ -101,10 +86,6 @@ public interface GameRuntimeFactory {
 
         public InteractionAdapter getInteractionAdapter() {
             return interactionAdapter;
-        }
-
-        public StatePersistence getStatePersistence() {
-            return statePersistence;
         }
     }
 
@@ -149,23 +130,4 @@ public interface GameRuntimeFactory {
         }
     }
 
-    interface StatePersistence {
-        void save(WorldState worldState, File saveFile) throws IOException;
-
-        WorldState load(File saveFile) throws IOException;
-
-        static StatePersistence unsupported() {
-            return new StatePersistence() {
-                @Override
-                public void save(WorldState worldState, File saveFile) throws IOException {
-                    throw new IOException("Game runtime does not support save");
-                }
-
-                @Override
-                public WorldState load(File saveFile) throws IOException {
-                    throw new IOException("Game runtime does not support load");
-                }
-            };
-        }
-    }
 }

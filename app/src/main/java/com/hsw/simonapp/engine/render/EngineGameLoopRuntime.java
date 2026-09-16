@@ -18,10 +18,7 @@ import com.hsw.simonapp.engine.loop.core.FrameContext;
 import com.hsw.simonapp.engine.loop.core.FrameRenderer;
 import com.hsw.simonapp.engine.loop.core.FrameTimingSink;
 import com.hsw.simonapp.engine.loop.core.GameLoop;
-import com.hsw.simonapp.engine.loop.core.WorldState;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -34,7 +31,6 @@ final class EngineGameLoopRuntime {
     private final SceneDefinition sceneDefinition;
     private final GameRuntimeFactory.ViewportAdapter viewportAdapter;
     private final GameRuntimeFactory.InteractionAdapter interactionAdapter;
-    private final GameRuntimeFactory.StatePersistence statePersistence;
     private final GeneratedSimonButtonAudioPlayer simonButtonAudioPlayer;
 
     EngineGameLoopRuntime(AssetManager assetManager,
@@ -71,7 +67,6 @@ final class EngineGameLoopRuntime {
         this.sceneDefinition = sceneDefinition;
         this.viewportAdapter = runtime.getViewportAdapter();
         this.interactionAdapter = runtime.getInteractionAdapter();
-        this.statePersistence = runtime.getStatePersistence();
     }
 
     EngineGameLoopRuntime(AssetManager assetManager,
@@ -102,7 +97,6 @@ final class EngineGameLoopRuntime {
         this.gameLoop = runtime.getGameLoop();
         this.viewportAdapter = runtime.getViewportAdapter();
         this.interactionAdapter = runtime.getInteractionAdapter();
-        this.statePersistence = runtime.getStatePersistence();
     }
 
     void queueTouchInput(TouchInputEvent touchInputEvent) {
@@ -143,29 +137,6 @@ final class EngineGameLoopRuntime {
             ((ViewportAwareFrameRenderer) frameRenderer).setCamera(camera);
         }
         viewportAdapter.resizeViewport(width, height, camera);
-    }
-
-    synchronized boolean saveWorld(File saveFile) {
-        try {
-            statePersistence.save(gameLoop.getCurrentWorldState(),
-                    Objects.requireNonNull(saveFile, "saveFile"));
-            return true;
-        } catch (IOException e) {
-            return false;
-        }
-    }
-
-    synchronized boolean loadWorld(File saveFile) {
-        try {
-            WorldState loadedWorldState = statePersistence.load(Objects.requireNonNull(saveFile, "saveFile"));
-            if (loadedWorldState == null) {
-                return false;
-            }
-            gameLoop.replaceWorldState(loadedWorldState);
-            return true;
-        } catch (IOException e) {
-            return false;
-        }
     }
 
     private static GameRuntimeFactory.GameRuntime createRuntime(AssetManager assetManager,

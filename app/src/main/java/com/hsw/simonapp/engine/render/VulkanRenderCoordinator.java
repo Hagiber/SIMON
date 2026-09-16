@@ -12,7 +12,6 @@ import com.hsw.simonapp.engine.scene.NativeSceneSnapshotFactory;
 import com.hsw.simonapp.engine.loop.core.FrameContext;
 import com.hsw.simonapp.engine.api.NativeLib;
 
-import java.io.File;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -107,14 +106,6 @@ public final class VulkanRenderCoordinator {
     public void stopAndRelease() {
         stopRenderLoop();
         release();
-    }
-
-    public boolean saveWorld(File saveFile) {
-        return engineGameLoopRuntime.saveWorld(saveFile);
-    }
-
-    public boolean loadWorld(File saveFile) {
-        return engineGameLoopRuntime.loadWorld(saveFile);
     }
 
     public void release() {

@@ -13,7 +13,7 @@ content.
 | Area | Package | Notes |
 | --- | --- | --- |
 | Host-facing API | `api/` | `EmbeddedEngine`, touch payloads, immutable scene payloads, and the narrow native facade. |
-| Game definition surface | `game/` | `GameDefinition`, `SceneDefinition`, and `GameRuntimeFactory` describe app-specific scene assets, initial world state, loop wiring, and save/load persistence without touching renderer internals. |
+| Game definition surface | `game/` | `GameDefinition`, `SceneDefinition`, and `GameRuntimeFactory` describe app-specific scene assets, initial world state, and loop wiring without touching renderer internals. |
 | Render loop | `render/` | Java `Choreographer` frame producer, render consumer thread, latest-frame mailbox, renderer lifecycle, Vulkan session coordination, and scene-frame submission. |
 | Scene/entity model | `loop/*`, `scene/*` | Deterministic update loop, world state, collision, and snapshot conversion. |
 | Assets | `assets/`, `scene/TextureCatalog` | Texture loading, generated shape textures, atlas metadata, and default scene catalog. |
@@ -26,7 +26,7 @@ content.
 | Area | Current | Target |
 | --- | --- | --- |
 | Public API | `api/` contains the host-facing embedding contract and immutable payload types. | Keep host apps isolated from engine internals and JNI declarations. |
-| Game configuration | `DefaultGameDefinition` preserves the current sample game while `EmbeddedEngine` can accept another `GameDefinition`. | Move app-specific assets, scene content, runtime wiring, and save/load persistence behind definitions instead of hard-coding them in render runtime classes. |
+| Game configuration | `DefaultGameDefinition` preserves the current sample game while `EmbeddedEngine` can accept another `GameDefinition`. | Move app-specific assets, scene content, and runtime wiring behind definitions instead of hard-coding them in render runtime classes. |
 | Engine internals | `assets/`, `audio/`, `input/`, `loop/`, `render/`, and `scene/` own update, render-loop coordination, scene conversion, assets, input queues, and audio events. | Keep authoritative world mutation and event decisions in Java engine code. |
 | Bridge layer | `com.hsw.vulkanrenderingengine.bridge` adapts Java engine calls to native JNI functions from the renderer AAR. | Keep raw native declarations hidden behind `api.NativeLib` and bridge adapters. |
 | Native payloads | Render state crosses to C++ as immutable `SceneFrame`/snapshot data. | Preserve immutable snapshot handoff and avoid native ownership of world mutation. |
@@ -51,9 +51,8 @@ content.
 `EmbeddedEngine` is the object a host embeds. It accepts host-owned lifecycle
 signals (`initialize`, `resize`, `start`, `stop`, `stopAndRelease`) and input
 payloads (`queueTouchInput`). A host may use the default game or pass a
-`GameDefinition` during construction; `saveGame(...)` and `loadGame(...)` are
-delegated to that runtime definition's persistence adapter. Everything after
-that point is engine-owned.
+`GameDefinition` during construction. Everything after that point is
+engine-owned.
 
 ## Runtime notes
 
@@ -61,10 +60,8 @@ that point is engine-owned.
   `api.NativeLib` and the AAR bridge. This supports reuse from different apps,
   but not multiple simultaneous renderer instances inside one process.
 - `SceneDefinition` supplies texture registrations and initial world state.
-- `GameRuntimeFactory` supplies the `GameLoop`, viewport adapter, interaction
-  adapter, and `StatePersistence` used by `EngineGameLoopRuntime`.
-- The default game's `StatePersistence` owns the `SimpleWorldState` JSON
-  mapping; `EngineGameLoopRuntime` no longer checks for `SimpleWorldState`.
+- `GameRuntimeFactory` supplies the `GameLoop`, viewport adapter, and
+  interaction adapter used by `EngineGameLoopRuntime`.
 - Frame cadence is driven by Java `Choreographer`; the native renderer should
   perform one submitted render frame and return without owning gameplay timing.
 - `FrameDiagnostics` is diagnostic-only. Its catch-up and slow-frame warnings

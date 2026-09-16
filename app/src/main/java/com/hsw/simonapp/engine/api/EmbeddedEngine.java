@@ -9,7 +9,6 @@ import com.hsw.simonapp.engine.game.GameDefinition;
 import com.hsw.simonapp.engine.render.VulkanRenderCoordinator;
 import com.hsw.simonapp.engine.render.VulkanRenderCoordinator.CoordinatorResult;
 
-import java.io.File;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -72,14 +71,6 @@ public final class EmbeddedEngine {
 
     public void stopAndRelease() {
         renderCoordinator.stopAndRelease();
-    }
-
-    public boolean saveGame(File saveFile) {
-        return renderCoordinator.saveWorld(Objects.requireNonNull(saveFile, "saveFile"));
-    }
-
-    public boolean loadGame(File saveFile) {
-        return renderCoordinator.loadWorld(Objects.requireNonNull(saveFile, "saveFile"));
     }
 
     public boolean isInitialized() {

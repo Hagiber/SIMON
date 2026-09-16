@@ -168,7 +168,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        saveGameSessionState(outState);
+        saveActiveSessionState(outState);
     }
 
     @Override
@@ -357,7 +357,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                 preferences.getInt(PREF_RECORD, 0));
     }
 
-    private void saveGameSessionState(Bundle outState) {
+    private void saveActiveSessionState(Bundle outState) {
         outState.putBoolean(INSTANCE_RUNNING, gameSessionState.isRunning());
         outState.putInt(INSTANCE_CURRENT_RESULT, gameSessionState.getCurrentResult());
         outState.putBoolean(INSTANCE_HAS_LAST_RESULT, gameSessionState.hasLastResult());
