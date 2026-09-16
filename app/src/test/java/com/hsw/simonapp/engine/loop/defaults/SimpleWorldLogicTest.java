@@ -45,8 +45,8 @@ public class SimpleWorldLogicTest {
 
     @Test
     public void update_usesViewportAdjustedVerticalBounds() {
-        SimpleWorldUpdater simpleWorldUpdater = new SimpleWorldUpdater();
-        simpleWorldUpdater.resizeViewport(100, 200);
+        SimonWorldUpdater simonWorldUpdater = new SimonWorldUpdater();
+        simonWorldUpdater.resizeViewport(100, 200);
         SimpleWorldState worldState = new SimpleWorldState(Arrays.asList(
                 new SimpleWorldState.EntityState(1,
                         0,
@@ -62,7 +62,7 @@ public class SimpleWorldLogicTest {
                         0.1f)
         ));
 
-        SimpleWorldState updatedWorldState = updateSimpleWorld(simpleWorldUpdater,
+        SimpleWorldState updatedWorldState = updateSimpleWorld(simonWorldUpdater,
                 worldState,
                 new FrameContext(1, 0.1f),
                 NeutralInputSnapshot.INSTANCE);
@@ -129,7 +129,7 @@ public class SimpleWorldLogicTest {
     @Test
     public void update_startsButtonPressAnimationForTouchedEntity() {
         WorldInteractionController interactionController = new WorldInteractionController();
-        SimpleWorldUpdater simpleWorldUpdater = new SimpleWorldUpdater(interactionController);
+        SimonWorldUpdater simonWorldUpdater = new SimonWorldUpdater(interactionController);
         SimpleWorldState worldState = new SimpleWorldState(Arrays.asList(
                 new SimpleWorldState.EntityState(3,
                         0,
@@ -162,7 +162,7 @@ public class SimpleWorldLogicTest {
                 100,
                 1L);
 
-        SimpleWorldState updatedWorldState = updateSimpleWorld(simpleWorldUpdater,
+        SimpleWorldState updatedWorldState = updateSimpleWorld(simonWorldUpdater,
                 worldState,
                 new FrameContext(1, 0.0f),
                 new TouchInputSnapshot(Collections.singletonList(touchDown)));
@@ -175,7 +175,7 @@ public class SimpleWorldLogicTest {
     @Test
     public void update_publishesSimonToneForTouchedButton() {
         AudioEventQueue audioEventQueue = new AudioEventQueue();
-        SimpleWorldUpdater simpleWorldUpdater = new SimpleWorldUpdater(new WorldInteractionController(),
+        SimonWorldUpdater simonWorldUpdater = new SimonWorldUpdater(new WorldInteractionController(),
                 audioEventQueue);
         SimpleWorldState worldState = new SimpleWorldState(Collections.singletonList(
                 new SimpleWorldState.EntityState(5,
@@ -209,7 +209,7 @@ public class SimpleWorldLogicTest {
                 100,
                 1L);
 
-        updateSimpleWorld(simpleWorldUpdater,
+        updateSimpleWorld(simonWorldUpdater,
                 worldState,
                 new FrameContext(7, 0.0f),
                 new TouchInputSnapshot(Collections.singletonList(touchDown)));
@@ -229,7 +229,7 @@ public class SimpleWorldLogicTest {
         WorldInteractionController interactionController = new WorldInteractionController();
         int[] pressedEntityId = new int[]{-1};
         interactionController.setButtonPressListener(entityId -> pressedEntityId[0] = entityId);
-        SimpleWorldUpdater simpleWorldUpdater = new SimpleWorldUpdater(interactionController);
+        SimonWorldUpdater simonWorldUpdater = new SimonWorldUpdater(interactionController);
         SimpleWorldState worldState = new SimpleWorldState(Collections.singletonList(
                 new SimpleWorldState.EntityState(6,
                         0,
@@ -262,7 +262,7 @@ public class SimpleWorldLogicTest {
                 100,
                 1L);
 
-        updateSimpleWorld(simpleWorldUpdater,
+        updateSimpleWorld(simonWorldUpdater,
                 worldState,
                 new FrameContext(7, 0.0f),
                 new TouchInputSnapshot(Collections.singletonList(touchDown)));
@@ -392,7 +392,7 @@ public class SimpleWorldLogicTest {
         WorldInteractionController interactionController = new WorldInteractionController();
         int[] selectedEntityId = new int[]{-1};
         interactionController.setSelectedEntityListener(entityId -> selectedEntityId[0] = entityId);
-        SimpleWorldUpdater simpleWorldUpdater = new SimpleWorldUpdater(interactionController);
+        SimonWorldUpdater simonWorldUpdater = new SimonWorldUpdater(interactionController);
         SimpleWorldState worldState = new SimpleWorldState(Arrays.asList(
                 new SimpleWorldState.EntityState(1,
                         0,
@@ -427,7 +427,7 @@ public class SimpleWorldLogicTest {
                 100,
                 1L);
 
-        updateSimpleWorld(simpleWorldUpdater,
+        updateSimpleWorld(simonWorldUpdater,
                 worldState,
                 new FrameContext(1, 0.0f),
                 new TouchInputSnapshot(Collections.singletonList(touchDown)));
@@ -446,7 +446,7 @@ public class SimpleWorldLogicTest {
             touchedCoordinates[0] = x;
             touchedCoordinates[1] = y;
         });
-        SimpleWorldUpdater simpleWorldUpdater = new SimpleWorldUpdater(interactionController);
+        SimonWorldUpdater simonWorldUpdater = new SimonWorldUpdater(interactionController);
         SimpleWorldState worldState = new SimpleWorldState(Arrays.asList(
                 new SimpleWorldState.EntityState(4,
                         0,
@@ -479,7 +479,7 @@ public class SimpleWorldLogicTest {
                 100,
                 1L);
 
-        updateSimpleWorld(simpleWorldUpdater,
+        updateSimpleWorld(simonWorldUpdater,
                 worldState,
                 new FrameContext(1, 0.0f),
                 new TouchInputSnapshot(Collections.singletonList(touchDown)));
@@ -495,7 +495,7 @@ public class SimpleWorldLogicTest {
         WorldInteractionController interactionController = new WorldInteractionController();
         interactionController.selectEntity(2);
         assertTrue(interactionController.requestReverseSelectedEntityDirection());
-        SimpleWorldUpdater simpleWorldUpdater = new SimpleWorldUpdater(interactionController);
+        SimonWorldUpdater simonWorldUpdater = new SimonWorldUpdater(interactionController);
         SimpleWorldState worldState = new SimpleWorldState(Arrays.asList(
                 new SimpleWorldState.EntityState(2,
                         0,
@@ -511,7 +511,7 @@ public class SimpleWorldLogicTest {
                         0.1f)
         ));
 
-        SimpleWorldState updatedWorldState = updateSimpleWorld(simpleWorldUpdater,
+        SimpleWorldState updatedWorldState = updateSimpleWorld(simonWorldUpdater,
                 worldState,
                 new FrameContext(1, 0.0f),
                 NeutralInputSnapshot.INSTANCE);
@@ -530,7 +530,7 @@ public class SimpleWorldLogicTest {
             touchedCoordinates[0] = x;
             touchedCoordinates[1] = y;
         });
-        SimpleWorldUpdater simpleWorldUpdater = new SimpleWorldUpdater(interactionController);
+        SimonWorldUpdater simonWorldUpdater = new SimonWorldUpdater(interactionController);
         SimpleWorldState worldState = new SimpleWorldState(Arrays.asList(
                 new SimpleWorldState.EntityState(2,
                         0,
@@ -553,7 +553,7 @@ public class SimpleWorldLogicTest {
                 100,
                 1L);
 
-        updateSimpleWorld(simpleWorldUpdater,
+        updateSimpleWorld(simonWorldUpdater,
                 worldState,
                 new FrameContext(1, 0.0f),
                 new TouchInputSnapshot(Collections.singletonList(touchDown)));
@@ -583,17 +583,17 @@ public class SimpleWorldLogicTest {
     private static SimpleWorldState updateSimpleWorld(SimpleWorldState worldState,
                                                       FrameContext frameContext,
                                                       InputSnapshot inputSnapshot) {
-        SimpleWorldUpdater simpleWorldUpdater = new SimpleWorldUpdater();
-        return updateSimpleWorld(simpleWorldUpdater, worldState, frameContext, inputSnapshot);
+        SimonWorldUpdater simonWorldUpdater = new SimonWorldUpdater();
+        return updateSimpleWorld(simonWorldUpdater, worldState, frameContext, inputSnapshot);
     }
 
-    private static SimpleWorldState updateSimpleWorld(SimpleWorldUpdater simpleWorldUpdater,
+    private static SimpleWorldState updateSimpleWorld(SimonWorldUpdater simonWorldUpdater,
                                                       SimpleWorldState worldState,
                                                       FrameContext frameContext,
                                                       InputSnapshot inputSnapshot) {
-        DeterministicWorldUpdater updater = new DeterministicWorldUpdater(simpleWorldUpdater,
-                simpleWorldUpdater,
-                simpleWorldUpdater);
+        DeterministicWorldUpdater updater = new DeterministicWorldUpdater(simonWorldUpdater,
+                simonWorldUpdater,
+                simonWorldUpdater);
         return (SimpleWorldState) updater.update(frameContext, worldState, inputSnapshot);
     }
 }

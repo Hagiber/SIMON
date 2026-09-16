@@ -15,7 +15,7 @@ import com.hsw.simonapp.engine.scene.TextureCatalog;
 
 import java.util.Objects;
 
-public final class SimpleWorldUpdater implements InputApplier, GameplayDecider, PhysicsIntegrator {
+public final class SimonWorldUpdater implements InputApplier, GameplayDecider, PhysicsIntegrator {
 
     private static final float SPRITE_HALF_EXTENT = 0.35f;
     private static final float TOUCH_HIT_MARGIN = 0.04f;
@@ -29,22 +29,22 @@ public final class SimpleWorldUpdater implements InputApplier, GameplayDecider, 
     private final WorldInteractionController worldInteractionController;
     private final AudioEventSink audioEventSink;
 
-    public SimpleWorldUpdater() {
+    public SimonWorldUpdater() {
         this(new WorldInteractionController());
     }
 
-    public SimpleWorldUpdater(WorldInteractionController worldInteractionController) {
+    public SimonWorldUpdater(WorldInteractionController worldInteractionController) {
         this(worldInteractionController, AudioEventSink.ignoring());
     }
 
-    public SimpleWorldUpdater(WorldInteractionController worldInteractionController,
-                              AudioEventSink audioEventSink) {
+    public SimonWorldUpdater(WorldInteractionController worldInteractionController,
+                             AudioEventSink audioEventSink) {
         this(WorldBounds.defaults(), worldInteractionController, audioEventSink);
     }
 
-    private SimpleWorldUpdater(WorldBounds worldBounds,
-                               WorldInteractionController worldInteractionController,
-                               AudioEventSink audioEventSink) {
+    private SimonWorldUpdater(WorldBounds worldBounds,
+                              WorldInteractionController worldInteractionController,
+                              AudioEventSink audioEventSink) {
         this(new TouchInputStateReducer(worldBounds),
                 new GameplaySystem(worldBounds),
                 new PhysicsSystem(worldBounds),
@@ -53,9 +53,9 @@ public final class SimpleWorldUpdater implements InputApplier, GameplayDecider, 
                 audioEventSink);
     }
 
-    SimpleWorldUpdater(TouchInputStateReducer touchInputStateReducer,
-                       GameplaySystem gameplaySystem,
-                       PhysicsSystem physicsSystem) {
+    SimonWorldUpdater(TouchInputStateReducer touchInputStateReducer,
+                      GameplaySystem gameplaySystem,
+                      PhysicsSystem physicsSystem) {
         this(touchInputStateReducer,
                 gameplaySystem,
                 physicsSystem,
@@ -64,12 +64,12 @@ public final class SimpleWorldUpdater implements InputApplier, GameplayDecider, 
                 AudioEventSink.ignoring());
     }
 
-    private SimpleWorldUpdater(TouchInputStateReducer touchInputStateReducer,
-                               GameplaySystem gameplaySystem,
-                               PhysicsSystem physicsSystem,
-                               WorldBounds worldBounds,
-                               WorldInteractionController worldInteractionController,
-                               AudioEventSink audioEventSink) {
+    private SimonWorldUpdater(TouchInputStateReducer touchInputStateReducer,
+                              GameplaySystem gameplaySystem,
+                              PhysicsSystem physicsSystem,
+                              WorldBounds worldBounds,
+                              WorldInteractionController worldInteractionController,
+                              AudioEventSink audioEventSink) {
         this.touchInputStateReducer = touchInputStateReducer;
         this.gameplaySystem = gameplaySystem;
         this.physicsSystem = physicsSystem;
