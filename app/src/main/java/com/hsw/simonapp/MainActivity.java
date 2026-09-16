@@ -6,6 +6,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.DisplayMetrics;
 import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,6 +32,10 @@ import com.hsw.simonapp.ui.GameSessionState;
 import com.hsw.simonapp.ui.LifecycleStateMachine;
 import com.hsw.simonapp.engine.api.EmbeddedEngine;
 import com.hsw.simonapp.engine.api.EmbeddedEngine.Result;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
 
 public class MainActivity extends AppCompatActivity implements SurfaceHolder.Callback {
 
@@ -52,6 +57,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private static final String INSTANCE_RECORD = "game_session_record";
 
     private GameSurfaceView surfaceView;
+    private FrameLayout adContainer;
     private FrameLayout gameContainer;
     private TextView statusText;
     private TextView lastResultText;
@@ -64,6 +70,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private int surfaceWidth;
     private int surfaceHeight;
     private GameSessionState gameSessionState;
+    private AdView bannerAdView;
     private boolean gameStartCountdownActive;
     private boolean simonGameplayStarted;
     private Runnable gameStartCountdownRunnable;
@@ -102,6 +109,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
         engine = new EmbeddedEngine(getAssets());
         gameSessionState = restoreGameSessionState(savedInstanceState);
+        adContainer = findViewById(R.id.ad_container);
         gameContainer = findViewById(R.id.game_container);
         surfaceView = findViewById(R.id.vulkan_surface);
         statusText = findViewById(R.id.status_text);
@@ -144,6 +152,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                 updateGameMenuOverlayHeight());
         gameContainer.post(this::updateGameMenuOverlayHeight);
         gameMenuOverlay.bringToFront();
+        initializeMobileAds();
         initializeGameMenuState();
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
@@ -160,12 +169,18 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     @Override
     protected void onResume() {
         super.onResume();
+        if (bannerAdView != null) {
+            bannerAdView.resume();
+        }
         lifecycleStateMachine.onResumed();
         maybeInitializeAndStartEngine();
     }
 
     @Override
     protected void onPause() {
+        if (bannerAdView != null) {
+            bannerAdView.pause();
+        }
         if (gameSessionState.isRunning()) {
             showGameMenuOverlay();
         }
@@ -217,6 +232,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     @Override
     protected void onDestroy() {
         cancelGameStartCountdown();
+        destroyBannerAd();
         if (surfaceView != null) {
             surfaceView.getHolder().removeCallback(this);
         }
@@ -351,6 +367,49 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
     private void hideGameMenuOverlay() {
         gameMenuOverlay.setVisibility(View.GONE);
+    }
+
+    private void initializeMobileAds() {
+        new Thread(() -> MobileAds.initialize(this, initializationStatus ->
+                runOnUiThread(this::loadAdaptiveBannerAd))).start();
+    }
+
+    private void loadAdaptiveBannerAd() {
+        if (isFinishing() || isDestroyed() || adContainer == null || bannerAdView != null) {
+            return;
+        }
+        if (adContainer.getWidth() <= 0) {
+            adContainer.post(this::loadAdaptiveBannerAd);
+            return;
+        }
+
+        AdView adView = new AdView(this);
+        adView.setAdUnitId(getString(R.string.admob_banner_ad_unit_id));
+        adView.setAdSize(createAdaptiveBannerSize());
+        bannerAdView = adView;
+
+        adContainer.removeAllViews();
+        adContainer.addView(adView);
+        adView.loadAd(new AdRequest.Builder().build());
+    }
+
+    private AdSize createAdaptiveBannerSize() {
+        DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+        int adWidthPixels = adContainer.getWidth();
+        if (adWidthPixels <= 0) {
+            adWidthPixels = displayMetrics.widthPixels;
+        }
+        int adWidth = (int) (adWidthPixels / displayMetrics.density);
+        return AdSize.getLargeAnchoredAdaptiveBannerAdSize(this, adWidth);
+    }
+
+    private void destroyBannerAd() {
+        if (bannerAdView == null) {
+            return;
+        }
+        adContainer.removeView(bannerAdView);
+        bannerAdView.destroy();
+        bannerAdView = null;
     }
 
     private void startGameStartCountdown() {
