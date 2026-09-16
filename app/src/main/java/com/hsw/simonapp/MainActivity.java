@@ -4,6 +4,8 @@ import android.content.SharedPreferences;
 import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,6 +36,8 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
     private static final int BUTTON_VOLUME_SEEKBAR_MAX = 100;
     private static final int DEFAULT_BUTTON_VOLUME_PROGRESS = 100;
+    private static final int GAME_START_COUNTDOWN_FROM = 3;
+    private static final long GAME_START_COUNTDOWN_STEP_MILLIS = 1000L;
     private static final float GAME_MENU_OVERLAY_HEIGHT_FRACTION = 0.46f;
     private static final String GAME_STATS_PREFERENCES = "simon_game_stats";
     private static final String LEGACY_PREF_RUNNING = "running";
@@ -60,7 +64,11 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private int surfaceWidth;
     private int surfaceHeight;
     private GameSessionState gameSessionState;
+    private boolean gameStartCountdownActive;
+    private boolean simonGameplayStarted;
+    private Runnable gameStartCountdownRunnable;
 
+    private final Handler gameStartCountdownHandler = new Handler(Looper.getMainLooper());
     private final LifecycleStateMachine lifecycleStateMachine = new LifecycleStateMachine();
 
     @Override
@@ -127,7 +135,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                 runOnUiThread(() -> finishGameRun(score)));
         surfaceView.getHolder().addCallback(this);
         surfaceView.setOnTouchListener(new AndroidTouchInputAdapter(touchInputEvent -> {
-            if (gameSessionState.isRunning() && !isGameMenuOverlayVisible()) {
+            if (gameSessionState.isRunning() && simonGameplayStarted && !isGameMenuOverlayVisible()) {
                 engine.queueTouchInput(touchInputEvent);
             }
         }));
@@ -208,6 +216,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
     @Override
     protected void onDestroy() {
+        cancelGameStartCountdown();
         if (surfaceView != null) {
             surfaceView.getHolder().removeCallback(this);
         }
@@ -275,19 +284,25 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
     private void startGameRun() {
         gameSessionState.startRun();
-        engine.startSimonGame();
+        simonGameplayStarted = false;
         hideGameMenuOverlay();
-        statusText.setText(getString(R.string.game_current_result, gameSessionState.getCurrentResult()));
         maybeInitializeAndStartEngine();
+        startGameStartCountdown();
     }
 
     private void continueActiveGameRun() {
         hideGameMenuOverlay();
-        statusText.setText(getString(R.string.game_current_result, gameSessionState.getCurrentResult()));
         maybeInitializeAndStartEngine();
+        if (simonGameplayStarted) {
+            statusText.setText(getString(R.string.game_current_result, gameSessionState.getCurrentResult()));
+        } else {
+            startGameStartCountdown();
+        }
     }
 
     private void finishActiveGameRun() {
+        cancelGameStartCountdown();
+        simonGameplayStarted = false;
         if (!gameSessionState.finishRun()) {
             return;
         }
@@ -304,6 +319,8 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     }
 
     private void finishGameRun(int finalScore) {
+        cancelGameStartCountdown();
+        simonGameplayStarted = false;
         if (!gameSessionState.finishRun(finalScore)) {
             return;
         }
@@ -319,8 +336,12 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     }
 
     private void showGameMenuOverlay() {
+        cancelGameStartCountdown();
         updateGameMenuStats();
         updateGameMenuPrimaryButton();
+        if (gameSessionState.isRunning()) {
+            statusText.setText(getString(R.string.game_current_result, gameSessionState.getCurrentResult()));
+        }
         gameMenuOverlay.setVisibility(View.VISIBLE);
         gameMenuOverlay.bringToFront();
         if (gameSessionState.isRunning() && engine.isInitialized()) {
@@ -330,6 +351,42 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
     private void hideGameMenuOverlay() {
         gameMenuOverlay.setVisibility(View.GONE);
+    }
+
+    private void startGameStartCountdown() {
+        if (gameStartCountdownActive) {
+            return;
+        }
+        gameStartCountdownActive = true;
+        showGameStartCountdown(GAME_START_COUNTDOWN_FROM);
+    }
+
+    private void showGameStartCountdown(int countdownValue) {
+        if (!gameStartCountdownActive || !gameSessionState.isRunning() || isGameMenuOverlayVisible()) {
+            cancelGameStartCountdown();
+            return;
+        }
+
+        statusText.setText(getString(R.string.game_start_countdown, countdownValue));
+        if (countdownValue <= 0) {
+            gameStartCountdownActive = false;
+            gameStartCountdownRunnable = null;
+            simonGameplayStarted = true;
+            engine.startSimonGame();
+            return;
+        }
+
+        gameStartCountdownRunnable = () -> showGameStartCountdown(countdownValue - 1);
+        gameStartCountdownHandler.postDelayed(gameStartCountdownRunnable,
+                GAME_START_COUNTDOWN_STEP_MILLIS);
+    }
+
+    private void cancelGameStartCountdown() {
+        if (gameStartCountdownRunnable != null) {
+            gameStartCountdownHandler.removeCallbacks(gameStartCountdownRunnable);
+            gameStartCountdownRunnable = null;
+        }
+        gameStartCountdownActive = false;
     }
 
     private boolean isGameMenuOverlayVisible() {

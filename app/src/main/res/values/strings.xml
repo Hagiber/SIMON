@@ -12,6 +12,7 @@
     <string name="game_continue_button_label">CONTINUE</string>
     <string name="game_exit_button_label">EXIT</string>
     <string name="game_current_result">Current run: %1$d</string>
+    <string name="game_start_countdown">%1$d</string>
     <string name="game_menu_ready">Press START</string>
     <string name="game_finished">Run finished: %1$d</string>
 </resources>
