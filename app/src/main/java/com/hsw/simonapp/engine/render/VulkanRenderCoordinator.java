@@ -129,6 +129,14 @@ public final class VulkanRenderCoordinator {
         engineGameLoopRuntime.setButtonPressListener(buttonPressListener);
     }
 
+    public void setScoreListener(Consumer<Integer> scoreListener) {
+        engineGameLoopRuntime.setScoreListener(scoreListener);
+    }
+
+    public void setGameOverListener(Consumer<Integer> gameOverListener) {
+        engineGameLoopRuntime.setGameOverListener(gameOverListener);
+    }
+
     public void setWorldCoordinateTouchListener(BiConsumer<Float, Float> worldCoordinateTouchListener) {
         engineGameLoopRuntime.setWorldCoordinateTouchListener(worldCoordinateTouchListener);
     }
@@ -139,6 +147,10 @@ public final class VulkanRenderCoordinator {
 
     public void setButtonToneVolume(float volume) {
         engineGameLoopRuntime.setButtonToneVolume(volume);
+    }
+
+    public void startSimonGame() {
+        engineGameLoopRuntime.startSimonGame();
     }
 
     private void recordCoordinatorFailure(CoordinatorErrorCode errorCode, String message) {

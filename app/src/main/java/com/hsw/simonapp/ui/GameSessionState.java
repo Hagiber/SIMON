@@ -29,20 +29,25 @@ public final class GameSessionState {
         currentResult = 0;
     }
 
-    public boolean recordButtonPress() {
+    public boolean setCurrentResult(int currentResult) {
         if (!running) {
             return false;
         }
-        currentResult++;
+        this.currentResult = Math.max(0, currentResult);
         return true;
     }
 
     public boolean finishRun() {
+        return finishRun(currentResult);
+    }
+
+    public boolean finishRun(int finalResult) {
         if (!running) {
             return false;
         }
         running = false;
         hasLastResult = true;
+        currentResult = Math.max(0, finalResult);
         lastResult = currentResult;
         record = Math.max(record, currentResult);
         return true;

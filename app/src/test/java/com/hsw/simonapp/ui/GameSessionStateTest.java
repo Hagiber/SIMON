@@ -9,7 +9,7 @@ import org.junit.Test;
 public class GameSessionStateTest {
 
     @Test
-    public void startRun_resetsCurrentResultAndStartsCounting() {
+    public void startRun_resetsCurrentResultAndAcceptsScoreUpdates() {
         GameSessionState state = new GameSessionState(true, 4, 6);
 
         state.startRun();
@@ -17,15 +17,15 @@ public class GameSessionStateTest {
         assertTrue(state.isRunning());
         assertEquals(0, state.getCurrentResult());
 
-        assertTrue(state.recordButtonPress());
-        assertEquals(1, state.getCurrentResult());
+        assertTrue(state.setCurrentResult(2));
+        assertEquals(2, state.getCurrentResult());
     }
 
     @Test
-    public void recordButtonPress_ignoresPressesWhenNotRunning() {
+    public void setCurrentResult_ignoresScoreWhenNotRunning() {
         GameSessionState state = new GameSessionState(false, 0, 0);
 
-        assertFalse(state.recordButtonPress());
+        assertFalse(state.setCurrentResult(1));
 
         assertEquals(0, state.getCurrentResult());
         assertFalse(state.hasLastResult());
@@ -35,10 +35,7 @@ public class GameSessionStateTest {
     public void finishRun_storesLastResultAndUpdatesRecord() {
         GameSessionState state = new GameSessionState(true, 2, 3);
         state.startRun();
-        state.recordButtonPress();
-        state.recordButtonPress();
-        state.recordButtonPress();
-        state.recordButtonPress();
+        state.setCurrentResult(4);
 
         assertTrue(state.finishRun());
 
@@ -88,5 +85,16 @@ public class GameSessionStateTest {
         assertTrue(state.hasLastResult());
         assertEquals(5, state.getLastResult());
         assertEquals(5, state.getRecord());
+    }
+
+    @Test
+    public void finishRun_withExplicitScoreStoresFinalResult() {
+        GameSessionState state = new GameSessionState(true, 2, true, 4, 6);
+
+        assertTrue(state.finishRun(7));
+
+        assertFalse(state.isRunning());
+        assertEquals(7, state.getLastResult());
+        assertEquals(7, state.getRecord());
     }
 }

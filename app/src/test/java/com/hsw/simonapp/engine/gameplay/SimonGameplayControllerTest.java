@@ -89,9 +89,14 @@ public class SimonGameplayControllerTest {
 
         assertEquals(SimonPhase.GAME_OVER, controller.getPhase());
         assertEquals(0, controller.getScore());
-        SimonGameplayEvent event = controller.pollEvent();
-        assertEquals(SimonGameplayEvent.Type.GAME_OVER, event.getType());
-        assertEquals(0, event.getScore());
+        SimonGameplayEvent rejected = controller.pollEvent();
+        assertEquals(SimonGameplayEvent.Type.PLAYER_INPUT_REJECTED, rejected.getType());
+        assertEquals(SimonButton.BLUE, rejected.getButton());
+        assertEquals(0, rejected.getScore());
+
+        SimonGameplayEvent gameOver = controller.pollEvent();
+        assertEquals(SimonGameplayEvent.Type.GAME_OVER, gameOver.getType());
+        assertEquals(0, gameOver.getScore());
     }
 
     @Test

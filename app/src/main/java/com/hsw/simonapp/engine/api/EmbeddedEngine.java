@@ -81,6 +81,10 @@ public final class EmbeddedEngine {
         renderCoordinator.queueTouchInput(touchInputEvent);
     }
 
+    public void startSimonGame() {
+        renderCoordinator.startSimonGame();
+    }
+
     public boolean reverseSelectedEntityDirection() {
         return renderCoordinator.reverseSelectedEntityDirection();
     }
@@ -95,6 +99,14 @@ public final class EmbeddedEngine {
 
     public void setButtonPressListener(Consumer<Integer> buttonPressListener) {
         renderCoordinator.setButtonPressListener(buttonPressListener);
+    }
+
+    public void setGameScoreListener(Consumer<Integer> gameScoreListener) {
+        renderCoordinator.setScoreListener(gameScoreListener);
+    }
+
+    public void setGameOverListener(Consumer<Integer> gameOverListener) {
+        renderCoordinator.setGameOverListener(gameOverListener);
     }
 
     public void setWorldCoordinateTouchListener(BiConsumer<Float, Float> worldCoordinateTouchListener) {

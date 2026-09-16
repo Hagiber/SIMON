@@ -90,6 +90,9 @@ public final class SimonGameplayController {
         SimonButton expectedButton = sequence.get(expectedInputIndex);
         if (nonNullButton != expectedButton) {
             phase = SimonPhase.GAME_OVER;
+            pendingEvents.add(SimonGameplayEvent.playerInputRejected(nonNullButton,
+                    expectedInputIndex,
+                    score));
             pendingEvents.add(SimonGameplayEvent.gameOver(score));
             return InputResult.WRONG;
         }
@@ -270,6 +273,17 @@ public final class SimonGameplayController {
                     score);
         }
 
+        private static SimonGameplayEvent playerInputRejected(SimonButton button,
+                                                              int sequenceIndex,
+                                                              int score) {
+            return new SimonGameplayEvent(Type.PLAYER_INPUT_REJECTED,
+                    Objects.requireNonNull(button, "button"),
+                    sequenceIndex,
+                    0,
+                    0,
+                    score);
+        }
+
         private static SimonGameplayEvent gameOver(int score) {
             return new SimonGameplayEvent(Type.GAME_OVER,
                     null,
@@ -306,6 +320,7 @@ public final class SimonGameplayController {
         public enum Type {
             SHOW_BUTTON,
             PLAYER_INPUT_ACCEPTED,
+            PLAYER_INPUT_REJECTED,
             ROUND_COMPLETED,
             GAME_OVER
         }

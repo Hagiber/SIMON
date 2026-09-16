@@ -105,6 +105,16 @@ public final class DefaultGameRuntimeFactory implements GameRuntimeFactory {
         }
 
         @Override
+        public void setScoreListener(Consumer<Integer> scoreListener) {
+            interactionController.setScoreListener(scoreListener);
+        }
+
+        @Override
+        public void setGameOverListener(Consumer<Integer> gameOverListener) {
+            interactionController.setGameOverListener(gameOverListener);
+        }
+
+        @Override
         public void setWorldCoordinateTouchListener(BiConsumer<Float, Float> worldCoordinateTouchListener) {
             interactionController.setWorldCoordinateTouchListener(worldCoordinateTouchListener);
         }
@@ -112,6 +122,11 @@ public final class DefaultGameRuntimeFactory implements GameRuntimeFactory {
         @Override
         public boolean requestReverseSelectedEntityDirection() {
             return interactionController.requestReverseSelectedEntityDirection();
+        }
+
+        @Override
+        public void startSimonGame() {
+            interactionController.requestStartGame();
         }
     }
 

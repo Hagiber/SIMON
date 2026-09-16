@@ -111,6 +111,14 @@ final class EngineGameLoopRuntime {
         interactionAdapter.setButtonPressListener(buttonPressListener);
     }
 
+    void setScoreListener(Consumer<Integer> scoreListener) {
+        interactionAdapter.setScoreListener(scoreListener);
+    }
+
+    void setGameOverListener(Consumer<Integer> gameOverListener) {
+        interactionAdapter.setGameOverListener(gameOverListener);
+    }
+
     void setWorldCoordinateTouchListener(BiConsumer<Float, Float> worldCoordinateTouchListener) {
         interactionAdapter.setWorldCoordinateTouchListener(worldCoordinateTouchListener);
     }
@@ -121,6 +129,10 @@ final class EngineGameLoopRuntime {
 
     void setButtonToneVolume(float volume) {
         simonButtonAudioPlayer.setVolume(volume);
+    }
+
+    void startSimonGame() {
+        interactionAdapter.startSimonGame();
     }
 
     synchronized void runFrame(FrameContext frameContext) {

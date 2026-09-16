@@ -10,7 +10,10 @@ import com.hsw.simonapp.engine.api.TextureRegion;
 import com.hsw.simonapp.engine.api.TouchInputEvent;
 import com.hsw.simonapp.engine.audio.AudioEvent;
 import com.hsw.simonapp.engine.audio.AudioEventQueue;
+import com.hsw.simonapp.engine.audio.AudioEventSink;
 import com.hsw.simonapp.engine.audio.AudioEventType;
+import com.hsw.simonapp.engine.gameplay.SimonGameplayController;
+import com.hsw.simonapp.engine.gameplay.SimonGameplayController.SimonButton;
 import com.hsw.simonapp.engine.input.TouchInputSnapshot;
 import com.hsw.simonapp.engine.loop.core.CollisionPair;
 import com.hsw.simonapp.engine.loop.core.DeterministicWorldUpdater;
@@ -127,14 +130,16 @@ public class SimpleWorldLogicTest {
     }
 
     @Test
-    public void update_startsButtonPressAnimationForTouchedEntity() {
+    public void update_showsFirstSequenceButtonAfterStartRequest() {
         WorldInteractionController interactionController = new WorldInteractionController();
-        SimonWorldUpdater simonWorldUpdater = new SimonWorldUpdater(interactionController);
+        SimonWorldUpdater simonWorldUpdater = new SimonWorldUpdater(interactionController,
+                AudioEventSink.ignoring(),
+                fixedSimonController(SimonButton.RED));
         SimpleWorldState worldState = new SimpleWorldState(Arrays.asList(
                 new SimpleWorldState.EntityState(3,
                         0,
                         SimpleWorldState.EntityState.ControlMode.AI,
-                        0,
+                        TextureCatalog.RED_BUTTON_TEXTURE_SLOT,
                         0f,
                         0f,
                         1f,
@@ -154,29 +159,24 @@ public class SimpleWorldLogicTest {
                         1.0f,
                         SimpleWorldState.EntityState.TouchInteraction.BUTTON_PRESS)
         ));
-        TouchInputEvent touchDown = new TouchInputEvent(TouchInputEvent.Action.DOWN,
-                9,
-                50.0f,
-                50.0f,
-                100,
-                100,
-                1L);
+        interactionController.requestStartGame();
 
         SimpleWorldState updatedWorldState = updateSimpleWorld(simonWorldUpdater,
                 worldState,
                 new FrameContext(1, 0.0f),
-                new TouchInputSnapshot(Collections.singletonList(touchDown)));
+                NeutralInputSnapshot.INSTANCE);
 
         SimpleWorldState.EntityState entity = updatedWorldState.getEntities().get(0);
-        assertEquals(Integer.valueOf(3), interactionController.getSelectedEntityId());
         assertEquals(1.0f, entity.getAnimationState(), 0.0001f);
     }
 
     @Test
-    public void update_publishesSimonToneForTouchedButton() {
+    public void update_publishesSimonToneForShownSequenceButton() {
         AudioEventQueue audioEventQueue = new AudioEventQueue();
-        SimonWorldUpdater simonWorldUpdater = new SimonWorldUpdater(new WorldInteractionController(),
-                audioEventQueue);
+        WorldInteractionController interactionController = new WorldInteractionController();
+        SimonWorldUpdater simonWorldUpdater = new SimonWorldUpdater(interactionController,
+                audioEventQueue,
+                fixedSimonController(SimonButton.BLUE));
         SimpleWorldState worldState = new SimpleWorldState(Collections.singletonList(
                 new SimpleWorldState.EntityState(5,
                         0,
@@ -201,18 +201,12 @@ public class SimpleWorldLogicTest {
                         1.0f,
                         SimpleWorldState.EntityState.TouchInteraction.BUTTON_PRESS)
         ));
-        TouchInputEvent touchDown = new TouchInputEvent(TouchInputEvent.Action.DOWN,
-                9,
-                50.0f,
-                50.0f,
-                100,
-                100,
-                1L);
+        interactionController.requestStartGame();
 
         updateSimpleWorld(simonWorldUpdater,
                 worldState,
                 new FrameContext(7, 0.0f),
-                new TouchInputSnapshot(Collections.singletonList(touchDown)));
+                NeutralInputSnapshot.INSTANCE);
 
         List<AudioEvent> audioEvents = audioEventQueue.drain();
         assertEquals(1, audioEvents.size());
@@ -225,11 +219,13 @@ public class SimpleWorldLogicTest {
     }
 
     @Test
-    public void update_notifiesButtonPressListenerForTouchedButton() {
+    public void update_acceptsCorrectPlaybackAndReportsScore() {
         WorldInteractionController interactionController = new WorldInteractionController();
-        int[] pressedEntityId = new int[]{-1};
-        interactionController.setButtonPressListener(entityId -> pressedEntityId[0] = entityId);
-        SimonWorldUpdater simonWorldUpdater = new SimonWorldUpdater(interactionController);
+        int[] score = new int[]{-1};
+        interactionController.setScoreListener(value -> score[0] = value);
+        SimonWorldUpdater simonWorldUpdater = new SimonWorldUpdater(interactionController,
+                AudioEventSink.ignoring(),
+                fixedSimonController(SimonButton.YELLOW));
         SimpleWorldState worldState = new SimpleWorldState(Collections.singletonList(
                 new SimpleWorldState.EntityState(6,
                         0,
@@ -262,10 +258,100 @@ public class SimpleWorldLogicTest {
                 100,
                 1L);
 
+        interactionController.requestStartGame();
+        SimpleWorldState showingState = updateSimpleWorld(simonWorldUpdater,
+                worldState,
+                new FrameContext(7, 0.0f),
+                NeutralInputSnapshot.INSTANCE);
+        SimpleWorldState waitingState = updateSimpleWorld(simonWorldUpdater,
+                showingState,
+                new FrameContext(8, 1.0f),
+                NeutralInputSnapshot.INSTANCE);
+        SimpleWorldState acceptedState = updateSimpleWorld(simonWorldUpdater,
+                waitingState,
+                new FrameContext(9, 0.0f),
+                new TouchInputSnapshot(Collections.singletonList(touchDown)));
+
+        assertEquals(1, score[0]);
+        assertEquals(1.0f, acceptedState.getEntities().get(0).getAnimationState(), 0.0001f);
+    }
+
+    @Test
+    public void update_rejectsWrongPlaybackAndReportsGameOver() {
+        WorldInteractionController interactionController = new WorldInteractionController();
+        int[] gameOverScore = new int[]{-1};
+        interactionController.setGameOverListener(value -> gameOverScore[0] = value);
+        SimonWorldUpdater simonWorldUpdater = new SimonWorldUpdater(interactionController,
+                AudioEventSink.ignoring(),
+                fixedSimonController(SimonButton.RED));
+        SimpleWorldState worldState = new SimpleWorldState(Arrays.asList(
+                createSimonButtonEntity(3, TextureCatalog.RED_BUTTON_TEXTURE_SLOT),
+                createSimonButtonEntity(5, TextureCatalog.BLUE_BUTTON_TEXTURE_SLOT)
+        ));
+        TouchInputEvent touchDown = new TouchInputEvent(TouchInputEvent.Action.DOWN,
+                9,
+                50.0f,
+                50.0f,
+                100,
+                100,
+                1L);
+
+        interactionController.requestStartGame();
+        SimpleWorldState showingState = updateSimpleWorld(simonWorldUpdater,
+                worldState,
+                new FrameContext(7, 0.0f),
+                NeutralInputSnapshot.INSTANCE);
+        SimpleWorldState waitingState = updateSimpleWorld(simonWorldUpdater,
+                showingState,
+                new FrameContext(8, 1.0f),
+                NeutralInputSnapshot.INSTANCE);
+        SimpleWorldState rejectedState = updateSimpleWorld(simonWorldUpdater,
+                waitingState,
+                new FrameContext(9, 0.0f),
+                new TouchInputSnapshot(Collections.singletonList(touchDown)));
+
+        assertEquals(0, gameOverScore[0]);
+        assertEquals(1.0f, rejectedState.findEntityById(5).getAnimationState(), 0.0001f);
+    }
+
+    @Test
+    public void update_notifiesButtonPressListenerForShownSequenceButton() {
+        WorldInteractionController interactionController = new WorldInteractionController();
+        int[] pressedEntityId = new int[]{-1};
+        interactionController.setButtonPressListener(entityId -> pressedEntityId[0] = entityId);
+        SimonWorldUpdater simonWorldUpdater = new SimonWorldUpdater(interactionController,
+                AudioEventSink.ignoring(),
+                fixedSimonController(SimonButton.YELLOW));
+        SimpleWorldState worldState = new SimpleWorldState(Collections.singletonList(
+                new SimpleWorldState.EntityState(6,
+                        0,
+                        SimpleWorldState.EntityState.ControlMode.AI,
+                        TextureCatalog.YELLOW_BUTTON_TEXTURE_SLOT,
+                        0f,
+                        0f,
+                        1f,
+                        0f,
+                        0f,
+                        0f,
+                        0f,
+                        0f,
+                        -4.0f,
+                        0.2f,
+                        BlendMode.ALPHA,
+                        0,
+                        0,
+                        ScissorRect.disabled(),
+                        TextureRegion.full(),
+                        1.0f,
+                        1.0f,
+                        SimpleWorldState.EntityState.TouchInteraction.BUTTON_PRESS)
+        ));
+
+        interactionController.requestStartGame();
         updateSimpleWorld(simonWorldUpdater,
                 worldState,
                 new FrameContext(7, 0.0f),
-                new TouchInputSnapshot(Collections.singletonList(touchDown)));
+                NeutralInputSnapshot.INSTANCE);
 
         assertEquals(6, pressedEntityId[0]);
     }
@@ -595,6 +681,36 @@ public class SimpleWorldLogicTest {
                 simonWorldUpdater,
                 simonWorldUpdater);
         return (SimpleWorldState) updater.update(frameContext, worldState, inputSnapshot);
+    }
+
+    private static SimonGameplayController fixedSimonController(SimonButton... buttons) {
+        return new SimonGameplayController(sequenceLength ->
+                buttons[Math.min(sequenceLength, buttons.length - 1)]);
+    }
+
+    private static SimpleWorldState.EntityState createSimonButtonEntity(int entityId, int textureSlot) {
+        return new SimpleWorldState.EntityState(entityId,
+                0,
+                SimpleWorldState.EntityState.ControlMode.AI,
+                textureSlot,
+                0f,
+                0f,
+                1f,
+                0f,
+                0f,
+                0f,
+                0f,
+                0f,
+                -4.0f,
+                0.2f,
+                BlendMode.ALPHA,
+                0,
+                0,
+                ScissorRect.disabled(),
+                TextureRegion.full(),
+                1.0f,
+                1.0f,
+                SimpleWorldState.EntityState.TouchInteraction.BUTTON_PRESS);
     }
 }
 

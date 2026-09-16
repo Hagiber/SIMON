@@ -108,9 +108,18 @@ public interface GameRuntimeFactory {
         default void setButtonPressListener(Consumer<Integer> buttonPressListener) {
         }
 
+        default void setScoreListener(Consumer<Integer> scoreListener) {
+        }
+
+        default void setGameOverListener(Consumer<Integer> gameOverListener) {
+        }
+
         void setWorldCoordinateTouchListener(BiConsumer<Float, Float> worldCoordinateTouchListener);
 
         boolean requestReverseSelectedEntityDirection();
+
+        default void startSimonGame() {
+        }
 
         static InteractionAdapter ignoring() {
             return new InteractionAdapter() {

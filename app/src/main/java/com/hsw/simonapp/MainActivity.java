@@ -121,8 +121,10 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         });
         gameMenuPrimaryButton.setOnClickListener(view -> handleGameMenuPrimaryAction());
         findViewById(R.id.exit_game_button).setOnClickListener(view -> exitApplication());
-        engine.setButtonPressListener(entityId ->
-                runOnUiThread(this::recordGameButtonPress));
+        engine.setGameScoreListener(score ->
+                runOnUiThread(() -> updateGameScore(score)));
+        engine.setGameOverListener(score ->
+                runOnUiThread(() -> finishGameRun(score)));
         surfaceView.getHolder().addCallback(this);
         surfaceView.setOnTouchListener(new AndroidTouchInputAdapter(touchInputEvent -> {
             if (gameSessionState.isRunning() && !isGameMenuOverlayVisible()) {
@@ -273,6 +275,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
     private void startGameRun() {
         gameSessionState.startRun();
+        engine.startSimonGame();
         hideGameMenuOverlay();
         statusText.setText(getString(R.string.game_current_result, gameSessionState.getCurrentResult()));
         maybeInitializeAndStartEngine();
@@ -293,11 +296,26 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         statusText.setText(getString(R.string.game_finished, gameSessionState.getLastResult()));
     }
 
-    private void recordGameButtonPress() {
-        if (!gameSessionState.recordButtonPress()) {
+    private void updateGameScore(int score) {
+        if (!gameSessionState.setCurrentResult(score)) {
             return;
         }
         statusText.setText(getString(R.string.game_current_result, gameSessionState.getCurrentResult()));
+    }
+
+    private void finishGameRun(int finalScore) {
+        if (!gameSessionState.finishRun(finalScore)) {
+            return;
+        }
+        saveCompletedGameStats();
+        updateGameMenuStats();
+        updateGameMenuPrimaryButton();
+        statusText.setText(getString(R.string.game_finished, gameSessionState.getLastResult()));
+        gameMenuOverlay.setVisibility(View.VISIBLE);
+        gameMenuOverlay.bringToFront();
+        if (engine.isInitialized()) {
+            engine.stop();
+        }
     }
 
     private void showGameMenuOverlay() {

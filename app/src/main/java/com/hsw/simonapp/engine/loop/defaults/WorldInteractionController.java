@@ -12,9 +12,12 @@ public final class WorldInteractionController {
     private final AtomicInteger selectedEntityId = new AtomicInteger(NO_SELECTED_ENTITY);
     private final ConcurrentLinkedQueue<Integer> reverseDirectionRequests = new ConcurrentLinkedQueue<>();
     private final ConcurrentLinkedQueue<Integer> buttonPressRequests = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<Boolean> startGameRequests = new ConcurrentLinkedQueue<>();
 
     private volatile Consumer<Integer> selectedEntityListener;
     private volatile Consumer<Integer> buttonPressListener;
+    private volatile Consumer<Integer> scoreListener;
+    private volatile Consumer<Integer> gameOverListener;
     private volatile BiConsumer<Float, Float> worldCoordinateTouchListener;
 
     public void setSelectedEntityListener(Consumer<Integer> selectedEntityListener) {
@@ -23,6 +26,14 @@ public final class WorldInteractionController {
 
     public void setButtonPressListener(Consumer<Integer> buttonPressListener) {
         this.buttonPressListener = buttonPressListener;
+    }
+
+    public void setScoreListener(Consumer<Integer> scoreListener) {
+        this.scoreListener = scoreListener;
+    }
+
+    public void setGameOverListener(Consumer<Integer> gameOverListener) {
+        this.gameOverListener = gameOverListener;
     }
 
     public void setWorldCoordinateTouchListener(BiConsumer<Float, Float> worldCoordinateTouchListener) {
@@ -68,6 +79,28 @@ public final class WorldInteractionController {
         if (listener != null) {
             listener.accept(entityId);
         }
+    }
+
+    public void requestStartGame() {
+        startGameRequests.add(Boolean.TRUE);
+    }
+
+    public void notifyScore(int score) {
+        Consumer<Integer> listener = scoreListener;
+        if (listener != null) {
+            listener.accept(score);
+        }
+    }
+
+    public void notifyGameOver(int score) {
+        Consumer<Integer> listener = gameOverListener;
+        if (listener != null) {
+            listener.accept(score);
+        }
+    }
+
+    Boolean pollStartGameRequest() {
+        return startGameRequests.poll();
     }
 
     Integer pollReverseDirectionRequest() {

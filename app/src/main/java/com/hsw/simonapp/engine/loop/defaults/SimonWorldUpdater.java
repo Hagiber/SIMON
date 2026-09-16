@@ -10,6 +10,10 @@ import com.hsw.simonapp.engine.loop.core.InputSnapshot;
 import com.hsw.simonapp.engine.loop.core.PhysicsIntegrator;
 import com.hsw.simonapp.engine.loop.core.WorldState;
 import com.hsw.simonapp.engine.api.TouchInputEvent;
+import com.hsw.simonapp.engine.gameplay.SimonGameplayController;
+import com.hsw.simonapp.engine.gameplay.SimonGameplayController.InputResult;
+import com.hsw.simonapp.engine.gameplay.SimonGameplayController.SimonButton;
+import com.hsw.simonapp.engine.gameplay.SimonGameplayController.SimonGameplayEvent;
 import com.hsw.simonapp.engine.input.TouchInputSnapshot;
 import com.hsw.simonapp.engine.scene.TextureCatalog;
 
@@ -28,6 +32,7 @@ public final class SimonWorldUpdater implements InputApplier, GameplayDecider, P
     private final WorldBounds worldBounds;
     private final WorldInteractionController worldInteractionController;
     private final AudioEventSink audioEventSink;
+    private final SimonGameplayController simonGameplayController;
 
     public SimonWorldUpdater() {
         this(new WorldInteractionController());
@@ -39,18 +44,29 @@ public final class SimonWorldUpdater implements InputApplier, GameplayDecider, P
 
     public SimonWorldUpdater(WorldInteractionController worldInteractionController,
                              AudioEventSink audioEventSink) {
-        this(WorldBounds.defaults(), worldInteractionController, audioEventSink);
+        this(WorldBounds.defaults(),
+                worldInteractionController,
+                audioEventSink,
+                new SimonGameplayController());
+    }
+
+    SimonWorldUpdater(WorldInteractionController worldInteractionController,
+                      AudioEventSink audioEventSink,
+                      SimonGameplayController simonGameplayController) {
+        this(WorldBounds.defaults(), worldInteractionController, audioEventSink, simonGameplayController);
     }
 
     private SimonWorldUpdater(WorldBounds worldBounds,
                               WorldInteractionController worldInteractionController,
-                              AudioEventSink audioEventSink) {
+                              AudioEventSink audioEventSink,
+                              SimonGameplayController simonGameplayController) {
         this(new TouchInputStateReducer(worldBounds),
                 new GameplaySystem(worldBounds),
                 new PhysicsSystem(worldBounds),
                 worldBounds,
                 worldInteractionController,
-                audioEventSink);
+                audioEventSink,
+                simonGameplayController);
     }
 
     SimonWorldUpdater(TouchInputStateReducer touchInputStateReducer,
@@ -61,7 +77,8 @@ public final class SimonWorldUpdater implements InputApplier, GameplayDecider, P
                 physicsSystem,
                 WorldBounds.defaults(),
                 new WorldInteractionController(),
-                AudioEventSink.ignoring());
+                AudioEventSink.ignoring(),
+                new SimonGameplayController());
     }
 
     private SimonWorldUpdater(TouchInputStateReducer touchInputStateReducer,
@@ -69,13 +86,17 @@ public final class SimonWorldUpdater implements InputApplier, GameplayDecider, P
                               PhysicsSystem physicsSystem,
                               WorldBounds worldBounds,
                               WorldInteractionController worldInteractionController,
-                              AudioEventSink audioEventSink) {
+                              AudioEventSink audioEventSink,
+                              SimonGameplayController simonGameplayController) {
         this.touchInputStateReducer = touchInputStateReducer;
         this.gameplaySystem = gameplaySystem;
         this.physicsSystem = physicsSystem;
         this.worldBounds = worldBounds;
-        this.worldInteractionController = worldInteractionController;
+        this.worldInteractionController = Objects.requireNonNull(worldInteractionController,
+                "worldInteractionController");
         this.audioEventSink = Objects.requireNonNull(audioEventSink, "audioEventSink");
+        this.simonGameplayController = Objects.requireNonNull(simonGameplayController,
+                "simonGameplayController");
     }
 
     public void resizeViewport(int width, int height) {
@@ -108,6 +129,7 @@ public final class SimonWorldUpdater implements InputApplier, GameplayDecider, P
         gameplaySystem.apply(nextWorldState,
                 touchInputStateReducer.getActiveTouchTargetX(),
                 touchInputStateReducer.getActiveTouchTargetY());
+        applySimonGameplay(frameContext, nextWorldState);
         applyQueuedWorldCommands(nextWorldState);
         return nextWorldState;
     }
@@ -167,8 +189,7 @@ public final class SimonWorldUpdater implements InputApplier, GameplayDecider, P
                     break;
                 case BUTTON_PRESS:
                     touchInputStateReducer.clearTouchTarget();
-                    worldInteractionController.requestButtonPress(selectedEntity.getEntityId());
-                    publishButtonTone(frameContext, selectedEntity);
+                    handleTouchedSimonButton(selectedEntity);
                     break;
                 case SELECT:
                 case NONE:
@@ -192,6 +213,105 @@ public final class SimonWorldUpdater implements InputApplier, GameplayDecider, P
         audioEventSink.publish(AudioEvent.buttonTone(frameContext.getFrameIndex(),
                 selectedEntity.getEntityId(),
                 toneIndex));
+    }
+
+    private void handleTouchedSimonButton(SimpleWorldState.EntityState selectedEntity) {
+        SimonButton button = simonButtonForTextureSlot(selectedEntity.getTextureSlot());
+        if (button == null) {
+            return;
+        }
+
+        InputResult ignored = simonGameplayController.handlePlayerButton(button);
+        if (ignored == InputResult.IGNORED) {
+            return;
+        }
+    }
+
+    private void applySimonGameplay(FrameContext frameContext, SimpleWorldState worldState) {
+        while (worldInteractionController.pollStartGameRequest() != null) {
+            simonGameplayController.start();
+        }
+
+        simonGameplayController.advance(frameContext.getDeltaSeconds());
+
+        SimonGameplayEvent event;
+        while ((event = simonGameplayController.pollEvent()) != null) {
+            applySimonGameplayEvent(frameContext, worldState, event);
+        }
+    }
+
+    private void applySimonGameplayEvent(FrameContext frameContext,
+                                         SimpleWorldState worldState,
+                                         SimonGameplayEvent event) {
+        switch (event.getType()) {
+            case SHOW_BUTTON:
+            case PLAYER_INPUT_ACCEPTED:
+            case PLAYER_INPUT_REJECTED:
+                pressSimonButton(frameContext, worldState, event.getButton());
+                break;
+            case ROUND_COMPLETED:
+                worldInteractionController.notifyScore(event.getScore());
+                break;
+            case GAME_OVER:
+                worldInteractionController.notifyGameOver(event.getScore());
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void pressSimonButton(FrameContext frameContext,
+                                  SimpleWorldState worldState,
+                                  SimonButton button) {
+        SimpleWorldState.EntityState entity = findSimonButtonEntity(worldState, button);
+        if (entity == null) {
+            return;
+        }
+
+        worldInteractionController.requestButtonPress(entity.getEntityId());
+        publishButtonTone(frameContext, entity);
+    }
+
+    private static SimpleWorldState.EntityState findSimonButtonEntity(SimpleWorldState worldState,
+                                                                      SimonButton button) {
+        int textureSlot = textureSlotForButton(button);
+        for (SimpleWorldState.EntityState entity : worldState.getEntities()) {
+            if (entity.getTextureSlot() == textureSlot) {
+                return entity;
+            }
+        }
+        return null;
+    }
+
+    private static SimonButton simonButtonForTextureSlot(int textureSlot) {
+        if (textureSlot == TextureCatalog.RED_BUTTON_TEXTURE_SLOT) {
+            return SimonButton.RED;
+        }
+        if (textureSlot == TextureCatalog.GREEN_BUTTON_TEXTURE_SLOT) {
+            return SimonButton.GREEN;
+        }
+        if (textureSlot == TextureCatalog.BLUE_BUTTON_TEXTURE_SLOT) {
+            return SimonButton.BLUE;
+        }
+        if (textureSlot == TextureCatalog.YELLOW_BUTTON_TEXTURE_SLOT) {
+            return SimonButton.YELLOW;
+        }
+        return null;
+    }
+
+    private static int textureSlotForButton(SimonButton button) {
+        switch (Objects.requireNonNull(button, "button")) {
+            case RED:
+                return TextureCatalog.RED_BUTTON_TEXTURE_SLOT;
+            case GREEN:
+                return TextureCatalog.GREEN_BUTTON_TEXTURE_SLOT;
+            case BLUE:
+                return TextureCatalog.BLUE_BUTTON_TEXTURE_SLOT;
+            case YELLOW:
+                return TextureCatalog.YELLOW_BUTTON_TEXTURE_SLOT;
+            default:
+                throw new IllegalArgumentException("Unsupported Simon button: " + button);
+        }
     }
 
     private static boolean isTouchInteractive(SimpleWorldState.EntityState entity) {
