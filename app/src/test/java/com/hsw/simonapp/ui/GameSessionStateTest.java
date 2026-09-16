@@ -54,19 +54,19 @@ public class GameSessionStateTest {
     }
 
     @Test
-    public void constructor_restoresRunningRunWithoutPromotingCurrentResultToRecord() {
-        GameSessionState state = new GameSessionState(true, 8, true, 5, 6);
+    public void constructor_restoresOnlyCompletedStats() {
+        GameSessionState state = new GameSessionState(true, 5, 6);
 
-        assertTrue(state.isRunning());
-        assertEquals(8, state.getCurrentResult());
+        assertFalse(state.isRunning());
+        assertEquals(0, state.getCurrentResult());
         assertTrue(state.hasLastResult());
         assertEquals(5, state.getLastResult());
         assertEquals(6, state.getRecord());
     }
 
     @Test
-    public void constructor_clearsCurrentResultWhenRestoredStateIsNotRunning() {
-        GameSessionState state = new GameSessionState(false, 9, false, -2, -3);
+    public void constructor_clampsNegativeStats() {
+        GameSessionState state = new GameSessionState(false, -2, -3);
 
         assertFalse(state.isRunning());
         assertEquals(0, state.getCurrentResult());
@@ -76,8 +76,10 @@ public class GameSessionStateTest {
     }
 
     @Test
-    public void finishRun_afterRestoredRunningRunStoresCurrentResult() {
-        GameSessionState state = new GameSessionState(true, 5, true, 3, 4);
+    public void finishRun_storesCurrentResult() {
+        GameSessionState state = new GameSessionState(true, 3, 4);
+        state.startRun();
+        state.setCurrentResult(5);
 
         assertTrue(state.finishRun());
 
@@ -89,7 +91,9 @@ public class GameSessionStateTest {
 
     @Test
     public void finishRun_withExplicitScoreStoresFinalResult() {
-        GameSessionState state = new GameSessionState(true, 2, true, 4, 6);
+        GameSessionState state = new GameSessionState(true, 4, 6);
+        state.startRun();
+        state.setCurrentResult(2);
 
         assertTrue(state.finishRun(7));
 

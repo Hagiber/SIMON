@@ -51,8 +51,6 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private static final String PREF_HAS_LAST_RESULT = "has_last_result";
     private static final String PREF_LAST_RESULT = "last_result";
     private static final String PREF_RECORD = "record";
-    private static final String INSTANCE_RUNNING = "game_session_running";
-    private static final String INSTANCE_CURRENT_RESULT = "game_session_current_result";
     private static final String INSTANCE_HAS_LAST_RESULT = "game_session_has_last_result";
     private static final String INSTANCE_LAST_RESULT = "game_session_last_result";
     private static final String INSTANCE_RECORD = "game_session_record";
@@ -158,7 +156,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
-                if (gameSessionState.isRunning()) {
+                if (hasActiveGameSession()) {
                     showGameMenuOverlay();
                     return;
                 }
@@ -182,7 +180,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         if (bannerAdView != null) {
             bannerAdView.pause();
         }
-        if (gameSessionState.isRunning()) {
+        if (hasActiveGameSession()) {
             showGameMenuOverlay();
         }
         saveCompletedGameStats();
@@ -194,7 +192,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        saveActiveSessionState(outState);
+        saveRestorableGameStats(outState);
     }
 
     @Override
@@ -300,7 +298,6 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     }
 
     private void startGameRun() {
-        gameSessionState.startRun();
         simonGameplayStarted = false;
         hideGameMenuOverlay();
         maybeInitializeAndStartEngine();
@@ -358,6 +355,8 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         updateGameMenuPrimaryButton();
         if (gameSessionState.isRunning()) {
             statusText.setText(getString(R.string.game_current_result, gameSessionState.getCurrentResult()));
+        } else {
+            statusText.setText(R.string.game_menu_ready);
         }
         gameMenuOverlay.setVisibility(View.VISIBLE);
         gameMenuOverlay.bringToFront();
@@ -427,7 +426,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     }
 
     private void showGameStartCountdown(int countdownValue) {
-        if (!gameStartCountdownActive || !gameSessionState.isRunning() || isGameMenuOverlayVisible()) {
+        if (!gameStartCountdownActive || isGameMenuOverlayVisible()) {
             cancelGameStartCountdown();
             return;
         }
@@ -436,7 +435,9 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         if (countdownValue <= 0) {
             gameStartCountdownActive = false;
             gameStartCountdownRunnable = null;
+            gameSessionState.startRun();
             simonGameplayStarted = true;
+            statusText.setText(getString(R.string.game_current_result, gameSessionState.getCurrentResult()));
             engine.startSimonGame();
             return;
         }
@@ -456,6 +457,10 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
     private boolean isGameMenuOverlayVisible() {
         return gameMenuOverlay != null && gameMenuOverlay.getVisibility() == View.VISIBLE;
+    }
+
+    private boolean hasActiveGameSession() {
+        return gameSessionState.isRunning() || gameStartCountdownActive;
     }
 
     private void updateGameMenuPrimaryButton() {
@@ -484,10 +489,8 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private GameSessionState restoreGameSessionState(Bundle savedInstanceState) {
         SharedPreferences preferences = getSharedPreferences(GAME_STATS_PREFERENCES, MODE_PRIVATE);
         if (savedInstanceState != null) {
-            return new GameSessionState(savedInstanceState.getBoolean(INSTANCE_RUNNING, false),
-                    savedInstanceState.getInt(INSTANCE_CURRENT_RESULT, 0),
-                    savedInstanceState.getBoolean(INSTANCE_HAS_LAST_RESULT,
-                            preferences.getBoolean(PREF_HAS_LAST_RESULT, false)),
+            return new GameSessionState(savedInstanceState.getBoolean(INSTANCE_HAS_LAST_RESULT,
+                    preferences.getBoolean(PREF_HAS_LAST_RESULT, false)),
                     savedInstanceState.getInt(INSTANCE_LAST_RESULT, preferences.getInt(PREF_LAST_RESULT, 0)),
                     savedInstanceState.getInt(INSTANCE_RECORD, preferences.getInt(PREF_RECORD, 0)));
         }
@@ -497,9 +500,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                 preferences.getInt(PREF_RECORD, 0));
     }
 
-    private void saveActiveSessionState(Bundle outState) {
-        outState.putBoolean(INSTANCE_RUNNING, gameSessionState.isRunning());
-        outState.putInt(INSTANCE_CURRENT_RESULT, gameSessionState.getCurrentResult());
+    private void saveRestorableGameStats(Bundle outState) {
         outState.putBoolean(INSTANCE_HAS_LAST_RESULT, gameSessionState.hasLastResult());
         outState.putInt(INSTANCE_LAST_RESULT, gameSessionState.getLastResult());
         outState.putInt(INSTANCE_RECORD, gameSessionState.getRecord());
