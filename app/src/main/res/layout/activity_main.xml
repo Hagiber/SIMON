@@ -143,6 +143,14 @@
 
             </LinearLayout>
 
+            <Button
+                android:id="@+id/privacy_options_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="@string/privacy_options_button_label"
+                android:visibility="gone" />
+
         </LinearLayout>
 
     </FrameLayout>

@@ -13,6 +13,7 @@
     <string name="game_start_button_label">START</string>
     <string name="game_continue_button_label">CONTINUE</string>
     <string name="game_exit_button_label">EXIT</string>
+    <string name="privacy_options_button_label">PRIVACY</string>
     <string name="game_current_result">Current run: %1$d</string>
     <string name="game_start_countdown">%1$d</string>
     <string name="game_menu_ready">Press START</string>

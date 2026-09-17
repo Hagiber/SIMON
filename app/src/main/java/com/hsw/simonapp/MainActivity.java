@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.SurfaceHolder;
 import android.view.View;
@@ -37,9 +38,13 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
+import com.google.android.ump.ConsentInformation;
+import com.google.android.ump.ConsentRequestParameters;
+import com.google.android.ump.UserMessagingPlatform;
 
 public class MainActivity extends AppCompatActivity implements SurfaceHolder.Callback {
 
+    private static final String TAG = "MainActivity";
     private static final int BUTTON_VOLUME_SEEKBAR_MAX = 100;
     private static final int DEFAULT_BUTTON_VOLUME_PROGRESS = 100;
     private static final int GAME_START_COUNTDOWN_FROM = 3;
@@ -62,6 +67,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private TextView lastResultText;
     private TextView recordText;
     private Button gameMenuPrimaryButton;
+    private Button privacyOptionsButton;
     private SeekBar buttonVolumeSeekBar;
     private View gameMenuOverlay;
     private EmbeddedEngine engine;
@@ -70,6 +76,9 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private int surfaceHeight;
     private GameSessionState gameSessionState;
     private AdView bannerAdView;
+    private ConsentInformation consentInformation;
+    private boolean mobileAdsInitializationStarted;
+    private boolean mobileAdsInitialized;
     private boolean gameStartCountdownActive;
     private boolean simonGameplayStarted;
     private Runnable gameStartCountdownRunnable;
@@ -115,6 +124,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         lastResultText = findViewById(R.id.last_result_text);
         recordText = findViewById(R.id.record_text);
         gameMenuPrimaryButton = findViewById(R.id.start_game_button);
+        privacyOptionsButton = findViewById(R.id.privacy_options_button);
         buttonVolumeSeekBar = findViewById(R.id.button_volume_seekbar);
         gameMenuOverlay = findViewById(R.id.game_menu_overlay);
         buttonVolumeSeekBar.setMax(BUTTON_VOLUME_SEEKBAR_MAX);
@@ -136,6 +146,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         });
         gameMenuPrimaryButton.setOnClickListener(view -> handleGameMenuPrimaryAction());
         findViewById(R.id.exit_game_button).setOnClickListener(view -> exitApplication());
+        privacyOptionsButton.setOnClickListener(view -> showPrivacyOptionsForm());
         engine.setGameScoreListener(score ->
                 runOnUiThread(() -> updateGameScore(score)));
         engine.setGameOverListener(score ->
@@ -151,7 +162,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                 updateGameMenuOverlayHeight());
         gameContainer.post(this::updateGameMenuOverlayHeight);
         gameMenuOverlay.bringToFront();
-        initializeMobileAds();
+        initializeMobileAdsAfterConsent();
         initializeGameMenuState();
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
@@ -369,9 +380,54 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         gameMenuOverlay.setVisibility(View.GONE);
     }
 
+    private void initializeMobileAdsAfterConsent() {
+        consentInformation = UserMessagingPlatform.getConsentInformation(this);
+        ConsentRequestParameters params = new ConsentRequestParameters.Builder().build();
+        consentInformation.requestConsentInfoUpdate(
+                this,
+                params,
+                () -> {
+                    updatePrivacyOptionsButtonVisibility();
+                    UserMessagingPlatform.loadAndShowConsentFormIfRequired(
+                            this,
+                            formError -> {
+                                if (formError != null) {
+                                    Log.w(TAG, "Consent form failed: " + formError);
+                                }
+                                updatePrivacyOptionsButtonVisibility();
+                                initializeMobileAdsIfConsentAllows();
+                            });
+                    initializeMobileAdsIfConsentAllows();
+                },
+                requestConsentError -> {
+                    Log.w(TAG, "Consent info update failed: " + requestConsentError);
+                    updatePrivacyOptionsButtonVisibility();
+                    initializeMobileAdsIfConsentAllows();
+                });
+    }
+
+    private void initializeMobileAdsIfConsentAllows() {
+        if (consentInformation == null || !consentInformation.canRequestAds()) {
+            destroyBannerAd();
+            return;
+        }
+        initializeMobileAds();
+    }
+
     private void initializeMobileAds() {
+        if (mobileAdsInitialized) {
+            loadAdaptiveBannerAd();
+            return;
+        }
+        if (mobileAdsInitializationStarted) {
+            return;
+        }
+        mobileAdsInitializationStarted = true;
         new Thread(() -> MobileAds.initialize(this, initializationStatus ->
-                runOnUiThread(this::loadAdaptiveBannerAd))).start();
+                runOnUiThread(() -> {
+                    mobileAdsInitialized = true;
+                    loadAdaptiveBannerAd();
+                }))).start();
     }
 
     private void loadAdaptiveBannerAd() {
@@ -415,6 +471,29 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         adContainer.removeView(bannerAdView);
         bannerAdView.destroy();
         bannerAdView = null;
+    }
+
+    private void updatePrivacyOptionsButtonVisibility() {
+        if (privacyOptionsButton == null || consentInformation == null) {
+            return;
+        }
+        boolean privacyOptionsRequired =
+                consentInformation.getPrivacyOptionsRequirementStatus()
+                        == ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED;
+        privacyOptionsButton.setVisibility(privacyOptionsRequired ? View.VISIBLE : View.GONE);
+    }
+
+    private void showPrivacyOptionsForm() {
+        if (consentInformation == null) {
+            return;
+        }
+        UserMessagingPlatform.showPrivacyOptionsForm(this, formError -> {
+            if (formError != null) {
+                Log.w(TAG, "Privacy options form failed: " + formError);
+            }
+            updatePrivacyOptionsButtonVisibility();
+            initializeMobileAdsIfConsentAllows();
+        });
     }
 
     private void startGameStartCountdown() {
